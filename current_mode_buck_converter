@@ -1,0 +1,2143 @@
+import matplotlib
+
+matplotlib.use('WXAgg')
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_wxagg import \
+    FigureCanvasWxAgg as FigCanvas
+import wx
+# from matplotlib import pyplot as plt
+import numpy as np
+from scipy import signal
+import pylab
+import pdb
+
+###########################################################################
+## Class MyFrame1
+###########################################################################
+
+class Current_Mode_UI(wx.Frame):
+    def __init__(self, parent):
+        wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"Current Mode Design Tool", pos = wx.DefaultPosition, size = wx.Size(  920,730  ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
+        #favicon = wx.Icon(r'anpec.ico', wx.BITMAP_TYPE_ICO, 16, 16)
+        #wx.Frame.SetIcon(self, favicon)
+
+        self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
+
+        bSizer1 = wx.BoxSizer( wx.VERTICAL )
+
+        sbSizer1 = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, u"Plots" ), wx.VERTICAL )
+
+        # Embedded Bode Plot
+        self.panel = wx.Panel(self)
+        self.Init_plot()
+        self.canvas = FigCanvas(self.panel, -1, self.fig)
+        sbSizer1.Add(self.panel, 0, wx.ALL, 5)
+
+        bSizer1.Add( sbSizer1, 1, wx.EXPAND, 5 )
+
+        sbSizer2 = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, u"Design" ), wx.VERTICAL )
+
+        self.m_notebook1 = wx.Notebook( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.m_panel1 = wx.Panel( self.m_notebook1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+        bSizer2 = wx.BoxSizer( wx.HORIZONTAL )
+
+        sbSizer4 = wx.StaticBoxSizer( wx.StaticBox( self.m_panel1, wx.ID_ANY, u"Design Parameter" ), wx.HORIZONTAL )
+
+        bSizer3 = wx.BoxSizer( wx.VERTICAL )
+
+        bSizer5 = wx.BoxSizer( wx.HORIZONTAL )
+
+        self.Vi2 = wx.StaticText( self.m_panel1, wx.ID_ANY, u"Vi  =", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Vi2.Wrap( -1 )
+        bSizer5.Add( self.Vi2, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 0 )
+
+        self.Text_Vi = wx.TextCtrl( self.m_panel1, wx.ID_ANY, u"12", wx.DefaultPosition, wx.Size( 48,18 ), 0 )
+        bSizer5.Add( self.Text_Vi, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 0 )
+
+        self.Vi1 = wx.StaticText( self.m_panel1, wx.ID_ANY, u"V", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Vi1.Wrap( -1 )
+        bSizer5.Add( self.Vi1, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 5 )
+
+
+        bSizer3.Add( bSizer5, 1, wx.EXPAND, 5 )
+
+        bSizer51 = wx.BoxSizer( wx.HORIZONTAL )
+
+        self.Vo1 = wx.StaticText( self.m_panel1, wx.ID_ANY, u"Vo=", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Vo1.Wrap( -1 )
+        bSizer51.Add( self.Vo1, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 0 )
+
+        self.Text_Vo = wx.TextCtrl( self.m_panel1, wx.ID_ANY, u"1.2", wx.DefaultPosition, wx.Size( 48,18 ), 0 )
+        bSizer51.Add( self.Text_Vo, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 0 )
+
+        self.Vi11 = wx.StaticText( self.m_panel1, wx.ID_ANY, u"V", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Vi11.Wrap( -1 )
+        bSizer51.Add( self.Vi11, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 0 )
+
+
+        bSizer3.Add( bSizer51, 1, wx.EXPAND, 5 )
+
+        bSizer55 = wx.BoxSizer( wx.HORIZONTAL )
+
+        self.m_staticText35 = wx.StaticText( self.m_panel1, wx.ID_ANY, u"fs =", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.m_staticText35.Wrap( -1 )
+        bSizer55.Add( self.m_staticText35, 0, wx.ALL, 0 )
+
+        self.Text_Fs = wx.TextCtrl( self.m_panel1, wx.ID_ANY, u"500", wx.DefaultPosition, wx.Size( 48,18 ), 0 )
+        bSizer55.Add( self.Text_Fs, 0, wx.ALL, 0 )
+
+        self.fs111 = wx.StaticText( self.m_panel1, wx.ID_ANY, u"KHz", wx.DefaultPosition, wx.DefaultSize, 0 )
+        bSizer55.Add( self.fs111, 0, wx.ALL, 5 )
+
+
+        bSizer3.Add( bSizer55, 1, wx.EXPAND, 5 )
+
+        bSizer56 = wx.BoxSizer( wx.HORIZONTAL )
+
+        self.m_staticText36 = wx.StaticText( self.m_panel1, wx.ID_ANY, u"Rc=", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.m_staticText36.Wrap( -1 )
+        bSizer56.Add( self.m_staticText36, 0, wx.ALL, 0 )
+
+        self.Text_Rc = wx.TextCtrl( self.m_panel1, wx.ID_ANY, u"9", wx.DefaultPosition, wx.Size( 48,18 ), 0 )
+        bSizer56.Add( self.Text_Rc, 0, wx.ALL, 0 )
+
+        self.Vi111 = wx.StaticText( self.m_panel1, wx.ID_ANY, u"m\u03A9", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Vi111.Wrap( -1 )
+        bSizer56.Add( self.Vi111, 0, wx.ALL, 5 )
+
+
+        bSizer3.Add( bSizer56, 1, wx.EXPAND, 5 )
+
+
+        sbSizer4.Add( bSizer3, 1, wx.EXPAND, 5 )
+
+        bSizer4 = wx.BoxSizer( wx.VERTICAL )
+
+        bSizer52 = wx.BoxSizer( wx.HORIZONTAL )
+
+        self.m_staticText32 = wx.StaticText( self.m_panel1, wx.ID_ANY, u"Co =", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.m_staticText32.Wrap( -1 )
+        bSizer52.Add( self.m_staticText32, 0, wx.ALL, 5 )
+
+        self.Text_Co = wx.TextCtrl( self.m_panel1, wx.ID_ANY, u"22", wx.DefaultPosition, wx.Size( 48,18 ), 0 )
+        bSizer52.Add( self.Text_Co, 0, wx.ALL, 5 )
+
+        self.Vi1113 = wx.StaticText( self.m_panel1, wx.ID_ANY, u"uF", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Vi1113.Wrap( -1 )
+        bSizer52.Add( self.Vi1113, 0, wx.TOP|wx.BOTTOM|wx.RIGHT, 5 )
+
+
+        bSizer4.Add( bSizer52, 1, wx.EXPAND, 5 )
+
+        bSizer53 = wx.BoxSizer( wx.HORIZONTAL )
+
+        self.m_staticText33 = wx.StaticText( self.m_panel1, wx.ID_ANY, u"Lo =", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.m_staticText33.Wrap( -1 )
+        bSizer53.Add( self.m_staticText33, 0, wx.ALL, 5 )
+
+        self.Text_Lo = wx.TextCtrl( self.m_panel1, wx.ID_ANY, u"5.6", wx.DefaultPosition, wx.Size( 52,18 ), 0 )
+        bSizer53.Add( self.Text_Lo, 0, wx.ALL, 5 )
+
+        self.Vi1114 = wx.StaticText( self.m_panel1, wx.ID_ANY, u"uH", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Vi1114.Wrap( -1 )
+        bSizer53.Add( self.Vi1114, 0, wx.TOP|wx.BOTTOM|wx.RIGHT, 5 )
+
+
+        bSizer4.Add( bSizer53, 1, wx.EXPAND, 5 )
+
+        bSizer57 = wx.BoxSizer( wx.HORIZONTAL )
+
+        self.m_staticText37 = wx.StaticText( self.m_panel1, wx.ID_ANY, u"Ro =", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.m_staticText37.Wrap( -1 )
+        bSizer57.Add( self.m_staticText37, 0, wx.ALL, 5 )
+
+        self.Text_Ro = wx.TextCtrl( self.m_panel1, wx.ID_ANY, u"0.4", wx.DefaultPosition, wx.Size( 52,18 ), 0 )
+        bSizer57.Add( self.Text_Ro, 0, wx.ALL, 5 )
+
+        self.Vi1111 = wx.StaticText( self.m_panel1, wx.ID_ANY, u"\u03A9", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Vi1111.Wrap( -1 )
+        bSizer57.Add( self.Vi1111, 0, wx.TOP|wx.BOTTOM|wx.RIGHT, 5 )
+
+
+        bSizer4.Add( bSizer57, 1, wx.EXPAND, 5 )
+
+        bSizer58 = wx.BoxSizer( wx.HORIZONTAL )
+
+        self.m_staticText38 = wx.StaticText( self.m_panel1, wx.ID_ANY, u"Ri = ", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.m_staticText38.Wrap( -1 )
+        bSizer58.Add( self.m_staticText38, 0, wx.ALL, 5 )
+
+        self.Text_Ri = wx.TextCtrl( self.m_panel1, wx.ID_ANY, u"300", wx.DefaultPosition, wx.Size( 52,18 ), 0 )
+        bSizer58.Add( self.Text_Ri, 0, wx.ALL, 5 )
+
+        self.Vi1112 = wx.StaticText( self.m_panel1, wx.ID_ANY, u"m\u03A9", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Vi1112.Wrap( -1 )
+        bSizer58.Add( self.Vi1112, 0, wx.ALL, 5 )
+
+
+        bSizer4.Add( bSizer58, 1, wx.EXPAND, 5 )
+
+
+        sbSizer4.Add( bSizer4, 1, wx.EXPAND, 5 )
+
+
+        bSizer2.Add( sbSizer4, 1, wx.EXPAND, 5 )
+
+        sbSizer3 = wx.StaticBoxSizer( wx.StaticBox( self.m_panel1, wx.ID_ANY, u"Calculate Results" ), wx.VERTICAL )
+
+        bSizer23 = wx.BoxSizer( wx.HORIZONTAL )
+
+        bSizer24 = wx.BoxSizer( wx.VERTICAL )
+
+        self.Label_D = wx.StaticText( self.m_panel1, wx.ID_ANY, u"D = ", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Label_D.Wrap( -1 )
+        bSizer24.Add( self.Label_D, 0, wx.ALL, 5 )
+
+        self.Label_mc = wx.StaticText( self.m_panel1, wx.ID_ANY, "mc=", wx.DefaultPosition, wx.DefaultSize, 0 )
+        #self.Label_mc = wx.StaticText( self.m_panel1, wx.ID_ANY, "", wx.DefaultPosition, wx.DefaultSize, 0 )
+        #self.Label_mc.SetLabel = """<p><b>mc=</b></p>"""
+        self.Label_mc.Wrap( -1 )
+        bSizer24.Add( self.Label_mc, 0, wx.ALL, 5 )
+
+        self.Label_Qc = wx.StaticText( self.m_panel1, wx.ID_ANY, u'Qc=', wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Label_Qc.Wrap( -1 )
+        bSizer24.Add( self.Label_Qc, 0, wx.ALL, 5 )
+
+        self.label_frcoss = wx.StaticText( self.m_panel1, wx.ID_ANY, u"f-cross =", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.label_frcoss.Wrap( -1 )
+        bSizer24.Add( self.label_frcoss, 0, wx.ALL, 5 )
+
+
+        bSizer23.Add( bSizer24, 1, wx.EXPAND, 5 )
+
+        bSizer25 = wx.BoxSizer( wx.VERTICAL )
+
+        self.Label_Wp1 = wx.StaticText( self.m_panel1, wx.ID_ANY, u"fp1 =", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Label_Wp1.Wrap( -1 )
+        bSizer25.Add( self.Label_Wp1, 0, wx.ALL, 5 )
+
+        self.Label_Wz = wx.StaticText( self.m_panel1, wx.ID_ANY, u"fz =", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Label_Wz.Wrap( -1 )
+        bSizer25.Add( self.Label_Wz, 0, wx.ALL, 5 )
+
+        self.Label_Wp2 = wx.StaticText( self.m_panel1, wx.ID_ANY, u"fp2 =", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Label_Wp2.Wrap( -1 )
+        bSizer25.Add( self.Label_Wp2, 0, wx.ALL, 5 )
+
+        self.Label_Wp3 = wx.StaticText( self.m_panel1, wx.ID_ANY, u"fp3 =", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Label_Wp3.Wrap( -1 )
+        bSizer25.Add( self.Label_Wp3, 0, wx.ALL, 5 )
+
+        self.Label_Gain = wx.StaticText( self.m_panel1, wx.ID_ANY, u"Gain = ", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Label_Gain.Wrap( -1 )
+        bSizer25.Add( self.Label_Gain, 0, wx.ALL, 5 )
+
+
+        bSizer23.Add( bSizer25, 1, wx.EXPAND, 5 )
+
+
+        sbSizer3.Add( bSizer23, 1, wx.EXPAND, 5 )
+
+
+        bSizer2.Add( sbSizer3, 1, wx.EXPAND, 5 )
+
+        self.Bt_Calculate = wx.Button( self.m_panel1, wx.ID_ANY, u"Calculate", wx.DefaultPosition, wx.DefaultSize, 0 )
+        bSizer2.Add( self.Bt_Calculate, 0, wx.TOP|wx.RIGHT|wx.LEFT, 5 )
+
+
+        self.m_panel1.SetSizer( bSizer2 )
+        self.m_panel1.Layout()
+        bSizer2.Fit( self.m_panel1 )
+        #self.m_notebook1.AddPage( self.m_panel1, u"Transfer Function", False )
+
+
+        self.m_panel2 = wx.Panel( self.m_notebook1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+        bSizer18 = wx.BoxSizer( wx.HORIZONTAL )
+
+        sbSizer6 = wx.StaticBoxSizer( wx.StaticBox( self.m_panel2, wx.ID_ANY, u"Design Parameter" ), wx.VERTICAL )
+
+        bSizer31 = wx.BoxSizer( wx.VERTICAL )
+
+        bSizer511 = wx.BoxSizer( wx.HORIZONTAL )
+
+        self.Vo11 = wx.StaticText( self.m_panel2, wx.ID_ANY, u"VREF =", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Vo11.Wrap( -1 )
+        bSizer511.Add( self.Vo11, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 5 )
+
+        self.Text_VREF = wx.TextCtrl( self.m_panel2, wx.ID_ANY, u"0.8", wx.DefaultPosition, wx.Size( 48,18 ), 0 )
+        bSizer511.Add( self.Text_VREF, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 5 )
+
+        self.Vi112 = wx.StaticText( self.m_panel2, wx.ID_ANY, u"V", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Vi112.Wrap( -1 )
+        bSizer511.Add( self.Vi112, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 5 )
+
+
+        bSizer31.Add( bSizer511, 1, wx.EXPAND, 5 )
+
+        bSizer561 = wx.BoxSizer( wx.HORIZONTAL )
+
+        self.m_staticText361 = wx.StaticText( self.m_panel2, wx.ID_ANY, u"f-cross =", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.m_staticText361.Wrap( -1 )
+        bSizer561.Add( self.m_staticText361, 0, wx.ALL, 5 )
+
+        self.Text_F_CROSS = wx.TextCtrl( self.m_panel2, wx.ID_ANY, u"50", wx.DefaultPosition, wx.Size( 48,18 ), 0 )
+        bSizer561.Add( self.Text_F_CROSS, 0, wx.ALL, 5 )
+
+        self.Vi1115 = wx.StaticText( self.m_panel2, wx.ID_ANY, u"KHz", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Vi1115.Wrap( -1 )
+        bSizer561.Add( self.Vi1115, 0, wx.ALL, 5 )
+
+
+        bSizer31.Add( bSizer561, 1, wx.EXPAND, 5 )
+
+        bSizer5611 = wx.BoxSizer( wx.HORIZONTAL )
+
+        self.m_staticText3611 = wx.StaticText( self.m_panel2, wx.ID_ANY, u"gm=", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.m_staticText3611.Wrap( -1 )
+        bSizer5611.Add( self.m_staticText3611, 0, wx.ALL, 5 )
+
+        self.Text_gm = wx.TextCtrl( self.m_panel2, wx.ID_ANY, u"180", wx.DefaultPosition, wx.Size( 48,18 ), 0 )
+        bSizer5611.Add( self.Text_gm, 0, wx.ALL, 5 )
+
+        self.Vi11151 = wx.StaticText( self.m_panel2, wx.ID_ANY, u"uA/V, ", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Vi11151.Wrap( -1 )
+        bSizer5611.Add( self.Vi11151, 0, wx.ALL, 5 )
+
+        self.m_staticText36111 = wx.StaticText( self.m_panel2, wx.ID_ANY, u"ro =", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.m_staticText36111.Wrap( -1 )
+        bSizer5611.Add( self.m_staticText36111, 0, wx.ALL, 5 )
+
+        self.Text_ro = wx.TextCtrl( self.m_panel2, wx.ID_ANY, u"10e6", wx.DefaultPosition, wx.Size( 48,18 ), 0 )
+        bSizer5611.Add( self.Text_ro, 0, wx.ALL, 5 )
+
+        self.Vi111511 = wx.StaticText( self.m_panel2, wx.ID_ANY, u"\u03A9", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Vi111511.Wrap( -1 )
+        bSizer5611.Add( self.Vi111511, 0, wx.ALL, 5 )
+
+
+        bSizer31.Add( bSizer5611, 1, wx.EXPAND, 5 )
+
+        sbSizer7 = wx.StaticBoxSizer( wx.StaticBox( self.m_panel2, wx.ID_ANY, u"Slope Compensation" ), wx.VERTICAL )
+
+        bSizer29 = wx.BoxSizer( wx.VERTICAL )
+
+        bSizer59 = wx.BoxSizer( wx.HORIZONTAL )
+
+        self.Check_VSL = wx.CheckBox( self.m_panel2, wx.ID_ANY, u"Manual", wx.DefaultPosition, wx.DefaultSize, 0 )
+        bSizer59.Add( self.Check_VSL, 0, wx.ALL, 5 )
+
+        self.m_staticText39 = wx.StaticText( self.m_panel2, wx.ID_ANY, u"VSL=", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.m_staticText39.Wrap( -1 )
+        bSizer59.Add( self.m_staticText39, 0, wx.ALL, 5 )
+
+        self.Text_VSL = wx.TextCtrl( self.m_panel2, wx.ID_ANY, u"300e-3", wx.DefaultPosition, wx.Size( 48,18 ), 0 )
+        self.Text_VSL.Enable( False )
+        bSizer59.Add( self.Text_VSL, 0, wx.ALL, 5 )
+
+        self.Vi121 = wx.StaticText( self.m_panel2, wx.ID_ANY, u"V", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Vi121.Wrap( -1 )
+        bSizer59.Add( self.Vi121, 0, wx.ALL, 5 )
+
+
+        bSizer29.Add( bSizer59, 1, wx.EXPAND, 5 )
+
+        bSizer30 = wx.BoxSizer( wx.HORIZONTAL )
+
+        self.R21 = wx.StaticText( self.m_panel2, wx.ID_ANY, u"Vo_max  =", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.R21.Wrap( -1 )
+        bSizer30.Add( self.R21, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 5 )
+
+        self.Text_Vo_max = wx.TextCtrl( self.m_panel2, wx.ID_ANY, u"1.2", wx.DefaultPosition, wx.Size( 48,18 ), 0 )
+        bSizer30.Add( self.Text_Vo_max, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 5 )
+
+        self.Vi12 = wx.StaticText( self.m_panel2, wx.ID_ANY, u"V, ", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Vi12.Wrap( -1 )
+        bSizer30.Add( self.Vi12, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 5 )
+
+        self.R211 = wx.StaticText( self.m_panel2, wx.ID_ANY, u"L_min =", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.R211.Wrap( -1 )
+        bSizer30.Add( self.R211, 0, wx.ALL, 5 )
+
+        self.Text_L_min = wx.TextCtrl( self.m_panel2, wx.ID_ANY, u"2.2", wx.DefaultPosition, wx.Size( 48,18 ), 0 )
+        bSizer30.Add( self.Text_L_min, 0, wx.ALL, 5 )
+
+        self.Vi122 = wx.StaticText( self.m_panel2, wx.ID_ANY, u"uH", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Vi122.Wrap( -1 )
+        bSizer30.Add( self.Vi122, 0, wx.ALL, 5 )
+
+
+        bSizer29.Add( bSizer30, 1, wx.EXPAND, 5 )
+
+
+        sbSizer7.Add( bSizer29, 1, wx.EXPAND, 5 )
+
+
+        bSizer31.Add( sbSizer7, 1, 0, 5 )
+
+
+        sbSizer6.Add( bSizer31, 1, wx.EXPAND, 5 )
+
+
+        bSizer18.Add( sbSizer6, 1, wx.EXPAND, 5 )
+
+        sbSizer31 = wx.StaticBoxSizer( wx.StaticBox( self.m_panel2, wx.ID_ANY, u"Calculate Results" ), wx.VERTICAL )
+
+        self.Label_H = wx.StaticText( self.m_panel2, wx.ID_ANY, u"H =", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Label_H.Wrap( -1 )
+        sbSizer31.Add( self.Label_H, 0, wx.ALL, 1 )
+
+        self.Label_fp = wx.StaticText( self.m_panel2, wx.ID_ANY, u"fp =", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Label_fp.Wrap( -1 )
+        sbSizer31.Add( self.Label_fp, 0, wx.ALL, 1 )
+
+        self.Label_Ac = wx.StaticText( self.m_panel2, wx.ID_ANY, u"Ac =", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Label_Ac.Wrap( -1 )
+        sbSizer31.Add( self.Label_Ac, 0, wx.ALL, 1 )
+
+        self.Label_mc1 = wx.StaticText( self.m_panel2, wx.ID_ANY, u"mc =", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Label_mc1.Wrap( -1 )
+        sbSizer31.Add( self.Label_mc1, 0, wx.ALL, 1 )
+
+        self.Label_Rc = wx.StaticText( self.m_panel2, wx.ID_ANY, u"Rc =", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Label_Rc.Wrap( -1 )
+        sbSizer31.Add( self.Label_Rc, 0, wx.ALL, 1 )
+
+        self.Label_Cc = wx.StaticText( self.m_panel2, wx.ID_ANY, u"Cc =", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Label_Cc.Wrap( -1 )
+        sbSizer31.Add( self.Label_Cc, 0, wx.ALL, 1 )
+
+
+        sbSizer14 = wx.StaticBoxSizer( wx.StaticBox( self.m_panel2, wx.ID_ANY, u"Manual Rc/Cc" ), wx.VERTICAL )
+
+        self.Check_RcCc = wx.CheckBox( self.m_panel2, wx.ID_ANY, u"Manual Enable", wx.DefaultPosition, wx.DefaultSize, 0 )
+        sbSizer14.Add( self.Check_RcCc, 0, wx.ALL, 3 )
+
+        bSizer301 = wx.BoxSizer( wx.HORIZONTAL )
+
+        self.R212 = wx.StaticText( self.m_panel2, wx.ID_ANY, u"Rc  =", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.R212.Wrap( -1 )
+        bSizer301.Add( self.R212, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 1 )
+
+        self.Text_Comp_Rc = wx.TextCtrl( self.m_panel2, wx.ID_ANY, u"1.73e4", wx.DefaultPosition, wx.Size( 60,18 ), 0 )
+        self.Text_Comp_Rc.Enable(False)
+        bSizer301.Add( self.Text_Comp_Rc, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 1 )
+
+        self.Vi123 = wx.StaticText( self.m_panel2, wx.ID_ANY, u"\u03A9, ", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Vi123.Wrap( -1 )
+        bSizer301.Add( self.Vi123, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 1 )
+
+        self.R2121 = wx.StaticText( self.m_panel2, wx.ID_ANY, u"Cc  =", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.R2121.Wrap( -1 )
+        bSizer301.Add( self.R2121, 0, wx.ALL, 1 )
+
+        self.Text_Comp_Cc = wx.TextCtrl( self.m_panel2, wx.ID_ANY, u"47.4", wx.DefaultPosition, wx.Size( 60,18 ), 0 )
+        self.Text_Comp_Cc.Enable(False)
+        bSizer301.Add( self.Text_Comp_Cc, 0, wx.ALL, 1 )
+
+        self.Vi1231 = wx.StaticText( self.m_panel2, wx.ID_ANY, u"pF ", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Vi1231.Wrap( -1 )
+        bSizer301.Add( self.Vi1231, 0, wx.ALL, 1 )
+
+
+        sbSizer14.Add( bSizer301, 1, wx.EXPAND, 1 )
+
+        bSizer581 = wx.BoxSizer( wx.VERTICAL )
+
+        self.Label_Comp_Zero = wx.StaticText( self.m_panel2, wx.ID_ANY, u"Compensator fz =", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Label_Comp_Zero.Wrap( -1 )
+        self.Label_Comp_Zero.Enable(False)
+        bSizer581.Add( self.Label_Comp_Zero, 0, wx.ALL, 1 )
+
+        sbSizer14.Add( bSizer581, 1, wx.EXPAND, 1 )
+
+
+        sbSizer31.Add( sbSizer14, 1, wx.EXPAND, 5 )
+
+
+        bSizer18.Add( sbSizer31, 1, wx.EXPAND, 5 )
+
+
+        sbSizer8 = wx.StaticBoxSizer( wx.StaticBox( self.m_panel2, wx.ID_ANY, u"Active" ), wx.VERTICAL )
+
+        sbSizer9 = wx.StaticBoxSizer( wx.StaticBox( self.m_panel2, wx.ID_ANY, u"Show" ), wx.VERTICAL )
+
+        self.Check_Transfer_Function = wx.CheckBox( self.m_panel2, wx.ID_ANY, u"Transfer Function", wx.DefaultPosition, wx.DefaultSize, 0 )
+        sbSizer9.Add( self.Check_Transfer_Function, 0, wx.ALL, 5 )
+
+        self.Check_Comppensator = wx.CheckBox( self.m_panel2, wx.ID_ANY, u"Compensator", wx.DefaultPosition, wx.DefaultSize, 0 )
+        sbSizer9.Add( self.Check_Comppensator, 0, wx.ALL, 5 )
+
+        self.Check_Total = wx.CheckBox( self.m_panel2, wx.ID_ANY, u"Total Transfer Function", wx.DefaultPosition, wx.DefaultSize, 0 )
+        sbSizer9.Add( self.Check_Total, 0, wx.ALL, 5 )
+
+
+        sbSizer8.Add( sbSizer9, 1, wx.EXPAND, 5 )
+
+        self.Bt_Compensation = wx.Button( self.m_panel2, wx.ID_ANY, u"Control Design", wx.DefaultPosition, wx.DefaultSize, 0 )
+        sbSizer8.Add( self.Bt_Compensation, 0, wx.ALL, 5 )
+
+
+        bSizer18.Add( sbSizer8, 1, wx.EXPAND, 5 )
+
+
+        self.m_panel2.SetSizer( bSizer18 )
+        self.m_panel2.Layout()
+        bSizer18.Fit( self.m_panel2 )
+        #self.m_notebook1.AddPage( self.m_panel2, u"Compensation", True )
+
+        self.m_panel3 = wx.Panel( self.m_notebook1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+        bSizer181 = wx.BoxSizer( wx.HORIZONTAL )
+
+        sbSizer61 = wx.StaticBoxSizer( wx.StaticBox( self.m_panel3, wx.ID_ANY, u"Parameter" ), wx.VERTICAL )
+
+        bSizer61 = wx.BoxSizer( wx.HORIZONTAL )
+
+        bSizer311 = wx.BoxSizer( wx.VERTICAL )
+
+        m_choice_processChoices = [u"  ---Select Device---", u"   NLD45G5   ", u"   NLD36G5    ", u"   NLD24G5_NBL", u"   NLD20G5_NBL", u"   NLD12G5_NBL", u"   NLD8G5_NBL", u"   NLD6G5_SA_NBL", u"   NCH5", u"   External MOS"]
+        self.m_choice_process = wx.Choice( self.m_panel3, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, m_choice_processChoices, 0 )
+        self.m_choice_process.SetSelection( 0 )
+        bSizer311.Add( self.m_choice_process, 0, wx.ALL, 1 )
+
+        bSizer51111 = wx.BoxSizer( wx.HORIZONTAL )
+
+        self.Vo1111 = wx.StaticText( self.m_panel3, wx.ID_ANY, u"Vo_nom=", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Vo1111.Wrap( -1 )
+        bSizer51111.Add( self.Vo1111, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 1 )
+
+        self.Text_Vo_nom = wx.TextCtrl( self.m_panel3, wx.ID_ANY, '1.2', wx.DefaultPosition, wx.Size( 36,18 ), 0 )
+        bSizer51111.Add( self.Text_Vo_nom, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 1 )
+
+        self.Vi11211 = wx.StaticText( self.m_panel3, wx.ID_ANY, u"V, ", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Vi11211.Wrap( -1 )
+        bSizer51111.Add( self.Vi11211, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 1 )
+
+
+        bSizer311.Add( bSizer51111, 0, wx.EXPAND, 0 )
+
+        bSizer511135 = wx.BoxSizer( wx.HORIZONTAL )
+
+        self.Vo11135 = wx.StaticText( self.m_panel3, wx.ID_ANY, u"V_IN =", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Vo11135.Wrap( -1 )
+        bSizer511135.Add( self.Vo11135, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 0 )
+
+        self.Text_V_IN = wx.TextCtrl( self.m_panel3, wx.ID_ANY, '12', wx.DefaultPosition, wx.Size( 36,18 ), 0 )
+        bSizer511135.Add( self.Text_V_IN, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 0 )
+
+        self.Vi112135 = wx.StaticText( self.m_panel3, wx.ID_ANY, u"V", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Vi112135.Wrap( -1 )
+        bSizer511135.Add( self.Vi112135, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 0 )
+
+
+        bSizer311.Add( bSizer511135, 0, wx.EXPAND, 0 )
+
+        bSizer51112 = wx.BoxSizer( wx.HORIZONTAL )
+
+        self.Vo1112 = wx.StaticText( self.m_panel3, wx.ID_ANY, u"I_out_total=", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Vo1112.Wrap( -1 )
+        bSizer51112.Add( self.Vo1112, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 0 )
+
+        self.Text_Io_Total = wx.TextCtrl( self.m_panel3, wx.ID_ANY, '10e-3', wx.DefaultPosition, wx.Size( 54,18 ), 0 )
+        bSizer51112.Add( self.Text_Io_Total, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 0 )
+
+        self.Vi11212 = wx.StaticText( self.m_panel3, wx.ID_ANY, u"A, ", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Vi11212.Wrap( -1 )
+        bSizer51112.Add( self.Vi11212, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 0 )
+
+
+        bSizer311.Add( bSizer51112, 0, wx.EXPAND, 0 )
+
+        bSizer51212 = wx.BoxSizer( wx.HORIZONTAL )
+
+        self.Vo1212 = wx.StaticText( self.m_panel3, wx.ID_ANY, u"I_L_PEAK_PFM=", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Vo1212.Wrap( -1 )
+        bSizer51212.Add( self.Vo1212, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 0 )
+
+        self.Text_I_L_PEAK_PFM = wx.TextCtrl( self.m_panel3, wx.ID_ANY, '0.7', wx.DefaultPosition, wx.Size( 54,18 ), 0 )
+        bSizer51212.Add( self.Text_I_L_PEAK_PFM, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 0 )
+
+        self.VV11212 = wx.StaticText( self.m_panel3, wx.ID_ANY, u"A, ", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.VV11212.Wrap( -1 )
+        bSizer51212.Add( self.VV11212, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 0 )
+
+
+        bSizer311.Add( bSizer51212, 0, wx.EXPAND, 0 )
+
+
+        bSizer512333 = wx.BoxSizer( wx.HORIZONTAL )
+
+        self.Vo32133 = wx.StaticText( self.m_panel3, wx.ID_ANY, u"Lo=", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Vo32133.Wrap( -1 )
+        bSizer512333.Add( self.Vo32133, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 0 )
+
+        self.Text_Lo_Efficiency = wx.TextCtrl( self.m_panel3, wx.ID_ANY, '4.7', wx.DefaultPosition, wx.Size( 48,18 ), 0 )
+        bSizer512333.Add( self.Text_Lo_Efficiency, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 0 )
+
+        self.Vi112133 = wx.StaticText( self.m_panel3, wx.ID_ANY, u"uH, ", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Vi112133.Wrap( -1 )
+        bSizer512333.Add( self.Vi112133, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 0 )
+
+        bSizer311.Add( bSizer512333, 0, wx.EXPAND, 5 )
+
+        bSizer511133 = wx.BoxSizer( wx.HORIZONTAL )
+
+        self.Vo11133 = wx.StaticText( self.m_panel3, wx.ID_ANY, u"Ind_ESR=", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Vo11133.Wrap( -1 )
+        bSizer511133.Add( self.Vo11133, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 0 )
+
+        self.Text_Lnd_ESR = wx.TextCtrl( self.m_panel3, wx.ID_ANY, '100', wx.DefaultPosition, wx.Size( 48,18 ), 0 )
+        bSizer511133.Add( self.Text_Lnd_ESR, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 0 )
+
+        self.Vi112133 = wx.StaticText( self.m_panel3, wx.ID_ANY, u"m\u03A9, ", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Vi112133.Wrap( -1 )
+        bSizer511133.Add( self.Vi112133, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 0 )
+
+        bSizer311.Add( bSizer511133, 0, wx.EXPAND, 5 )
+
+
+        bSizer511134 = wx.BoxSizer( wx.HORIZONTAL )
+
+        self.Vo11134 = wx.StaticText( self.m_panel3, wx.ID_ANY, u"Ind_core =", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Vo11134.Wrap( -1 )
+        bSizer511134.Add( self.Vo11134, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 0 )
+
+        self.Text_P_loss_Lnd_core_percent = wx.TextCtrl( self.m_panel3, wx.ID_ANY, '10', wx.DefaultPosition, wx.Size( 48,18 ), 0 )
+        bSizer511134.Add( self.Text_P_loss_Lnd_core_percent, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 0 )
+
+        self.Vi112134 = wx.StaticText( self.m_panel3, wx.ID_ANY, u'%', wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Vi112134.Wrap( -1 )
+        bSizer511134.Add( self.Vi112134, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 0 )
+
+
+        bSizer311.Add( bSizer511134, 0, wx.EXPAND, 5 )
+
+
+        bSizer5111353 = wx.BoxSizer( wx.HORIZONTAL )
+
+        self.Vo111353 = wx.StaticText( self.m_panel3, wx.ID_ANY, u"Fsw_Per_Phase =", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Vo111353.Wrap( -1 )
+        bSizer5111353.Add( self.Vo111353, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 0 )
+
+        self.Text_Fsw_Per_Phase = wx.TextCtrl( self.m_panel3, wx.ID_ANY, '500', wx.DefaultPosition, wx.Size( 48,18 ), 0 )
+        bSizer5111353.Add( self.Text_Fsw_Per_Phase, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 0 )
+
+        self.Vi1121353 = wx.StaticText( self.m_panel3, wx.ID_ANY, 'KHz,  ', wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Vi1121353.Wrap( -1 )
+        bSizer5111353.Add( self.Vi1121353, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 0 )
+
+        bSizer311.Add( bSizer5111353, 0, wx.EXPAND, 0 )
+
+        bSizer5123353 = wx.BoxSizer( wx.HORIZONTAL )
+
+        self.Label_Qg_HS = wx.StaticText( self.m_panel3, wx.ID_ANY, u"Qg_HS = ", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Label_Qg_HS.Wrap( -1 )
+        bSizer5123353.Add( self.Label_Qg_HS, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 0)
+
+        self.Text_Qg_HS = wx.TextCtrl( self.m_panel3, wx.ID_ANY, '', wx.DefaultPosition, wx.Size( 48,18 ), 0 )
+        self.Text_Qg_HS.Enable(False)
+        bSizer5123353.Add( self.Text_Qg_HS, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 0 )
+
+        self.Unit_Qg_HS = wx.StaticText( self.m_panel3, wx.ID_ANY, 'nC', wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Unit_Qg_HS.Wrap( -1 )
+        bSizer5123353.Add( self.Unit_Qg_HS, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 0 )
+
+        bSizer311.Add(bSizer5123353, 0, wx.ALL, 0 )
+
+
+        bSizer5321353 = wx.BoxSizer( wx.HORIZONTAL )
+        self.Label_Qg_LS = wx.StaticText( self.m_panel3, wx.ID_ANY, u"Qg_LS =  ", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Label_Qg_LS.Wrap( -1 )
+        bSizer5321353.Add( self.Label_Qg_LS, 0, wx.ALL, 0 )
+
+        self.Text_Qg_LS = wx.TextCtrl( self.m_panel3, wx.ID_ANY, '', wx.DefaultPosition, wx.Size( 48,18 ), 0 )
+        self.Text_Qg_LS.Enable(False)
+        bSizer5321353.Add( self.Text_Qg_LS, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 0 )
+
+        self.Unit_Qg_LS = wx.StaticText( self.m_panel3, wx.ID_ANY, 'nC', wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Unit_Qg_LS.Wrap( -1 )
+        bSizer5321353.Add( self.Unit_Qg_LS, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 0 )
+
+        bSizer311.Add(bSizer5321353, 0, wx.ALL, 0 )
+
+
+        bSizer61.Add( bSizer311, 1, wx.EXPAND, 0 )
+
+        bSizer3111 = wx.BoxSizer( wx.VERTICAL )
+
+        bSizer511111 = wx.BoxSizer( wx.HORIZONTAL )
+
+        self.Vo11111 = wx.StaticText( self.m_panel3, wx.ID_ANY, u"T_lx_rising =", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Vo11111.Wrap( -1 )
+        bSizer511111.Add( self.Vo11111, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 1 )
+
+        self.Text_T_lx_rising = wx.TextCtrl( self.m_panel3, wx.ID_ANY, '10', wx.DefaultPosition, wx.Size( 54,18 ), 0 )
+        bSizer511111.Add( self.Text_T_lx_rising, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 1 )
+
+        self.Vi112111 = wx.StaticText( self.m_panel3, wx.ID_ANY, u"ns, ", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Vi112111.Wrap( -1 )
+        bSizer511111.Add( self.Vi112111, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 1 )
+
+
+        bSizer3111.Add( bSizer511111, 0, wx.EXPAND, 0 )
+
+        bSizer511121 = wx.BoxSizer( wx.HORIZONTAL )
+
+        self.Vo11121 = wx.StaticText( self.m_panel3, wx.ID_ANY, u"T_lx_falling =", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Vo11121.Wrap( -1 )
+        bSizer511121.Add( self.Vo11121, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 0 )
+
+        self.Text_T_lx_falling = wx.TextCtrl( self.m_panel3, wx.ID_ANY, '10', wx.DefaultPosition, wx.Size( 54,18 ), 0 )
+        bSizer511121.Add( self.Text_T_lx_falling, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 0 )
+
+        self.Vi112121 = wx.StaticText( self.m_panel3, wx.ID_ANY, u"ns", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Vi112121.Wrap( -1 )
+        bSizer511121.Add( self.Vi112121, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 0 )
+
+
+        bSizer3111.Add( bSizer511121, 0, wx.EXPAND, 0 )
+
+        bSizer511131 = wx.BoxSizer( wx.HORIZONTAL )
+
+        self.Vo11131 = wx.StaticText( self.m_panel3, wx.ID_ANY, u"T_dead_L_H =", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Vo11131.Wrap( -1 )
+        bSizer511131.Add( self.Vo11131, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 0 )
+
+        self.Text_T_dead_L_H = wx.TextCtrl( self.m_panel3, wx.ID_ANY, '10', wx.DefaultPosition, wx.Size( 54,18 ), 0 )
+        bSizer511131.Add( self.Text_T_dead_L_H, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 0 )
+
+        self.Vi112131 = wx.StaticText( self.m_panel3, wx.ID_ANY, u"ns", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Vi112131.Wrap( -1 )
+        bSizer511131.Add( self.Vi112131, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 0 )
+
+
+        bSizer3111.Add( bSizer511131, 0, wx.EXPAND, 0 )
+
+        bSizer5111331 = wx.BoxSizer( wx.HORIZONTAL )
+
+        self.Vo111331 = wx.StaticText( self.m_panel3, wx.ID_ANY, u"T_dead_H_L =", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Vo111331.Wrap( -1 )
+        bSizer5111331.Add( self.Vo111331, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 0 )
+
+        self.Text_T_dead_H_L = wx.TextCtrl( self.m_panel3, wx.ID_ANY, '10', wx.DefaultPosition, wx.Size( 54,18 ), 0 )
+        bSizer5111331.Add( self.Text_T_dead_H_L, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 0 )
+
+        self.Vi1121331 = wx.StaticText( self.m_panel3, wx.ID_ANY, u"ns", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Vi1121331.Wrap( -1 )
+        bSizer5111331.Add( self.Vi1121331, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 0 )
+
+
+        bSizer3111.Add( bSizer5111331, 0, wx.EXPAND, 5 )
+
+        bSizer5111341 = wx.BoxSizer( wx.HORIZONTAL )
+
+        self.Vo111341 = wx.StaticText( self.m_panel3, wx.ID_ANY, u"VF_DIODE = ", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Vo111341.Wrap( -1 )
+        bSizer5111341.Add( self.Vo111341, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 0 )
+
+        self.Text_VF_DIODE = wx.TextCtrl( self.m_panel3, wx.ID_ANY, '0.5', wx.DefaultPosition, wx.Size( 36,18 ), 0 )
+        bSizer5111341.Add( self.Text_VF_DIODE, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 0 )
+
+        self.Vi1121341 = wx.StaticText( self.m_panel3, wx.ID_ANY, u"V", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Vi1121341.Wrap( -1 )
+        bSizer5111341.Add( self.Vi1121341, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 0 )
+
+
+        bSizer3111.Add( bSizer5111341, 0, wx.EXPAND, 5 )
+
+        bSizer5111354 = wx.BoxSizer( wx.HORIZONTAL )
+
+        self.Vo111354 = wx.StaticText( self.m_panel3, wx.ID_ANY, u"PVCC =", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Vo111354.Wrap( -1 )
+        bSizer5111354.Add( self.Vo111354, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 0 )
+
+        self.Text_PVCC = wx.TextCtrl( self.m_panel3, wx.ID_ANY, '5', wx.DefaultPosition, wx.Size( 36,18 ), 0 )
+        bSizer5111354.Add( self.Text_PVCC, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 0 )
+
+        self.Vi1121354 = wx.StaticText( self.m_panel3, wx.ID_ANY, u"V", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Vi1121354.Wrap( -1 )
+        bSizer5111354.Add( self.Vi1121354, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 0 )
+
+
+        bSizer3111.Add( bSizer5111354, 0, wx.EXPAND, 0 )
+
+        bSizer51113511 = wx.BoxSizer( wx.HORIZONTAL )
+
+        self.Vo1113511 = wx.StaticText( self.m_panel3, wx.ID_ANY, u"Rds_on_High =", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Vo1113511.Wrap( -1 )
+        bSizer51113511.Add( self.Vo1113511, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 0 )
+
+        self.Text_Rds_on_High = wx.TextCtrl( self.m_panel3, wx.ID_ANY, '10', wx.DefaultPosition, wx.Size( 54,18 ), 0 )
+        bSizer51113511.Add( self.Text_Rds_on_High, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 0 )
+
+        self.Vi11213511 = wx.StaticText( self.m_panel3, wx.ID_ANY, u"m\u03A9", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Vi11213511.Wrap( -1 )
+        bSizer51113511.Add( self.Vi11213511, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 0 )
+
+
+        bSizer3111.Add( bSizer51113511, 0, wx.EXPAND, 0 )
+
+        bSizer51113521 = wx.BoxSizer( wx.HORIZONTAL )
+
+        self.Vo1113521 = wx.StaticText( self.m_panel3, wx.ID_ANY, u"Rds_on_Low =", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Vo1113521.Wrap( -1 )
+        bSizer51113521.Add( self.Vo1113521, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 0 )
+
+        self.Text_Rds_on_Low = wx.TextCtrl( self.m_panel3, wx.ID_ANY, '10', wx.DefaultPosition, wx.Size( 54,18 ), 0 )
+        bSizer51113521.Add( self.Text_Rds_on_Low, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 0 )
+
+        self.Vi11213521 = wx.StaticText( self.m_panel3, wx.ID_ANY, u"m\u03A9", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Vi11213521.Wrap( -1 )
+        bSizer51113521.Add( self.Vi11213521, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 0 )
+
+
+        bSizer3111.Add( bSizer51113521, 0, wx.EXPAND, 0 )
+
+        bSizer51113531 = wx.BoxSizer( wx.HORIZONTAL )
+
+        self.Vo1113531 = wx.StaticText( self.m_panel3, wx.ID_ANY, u"Iq_controller =", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Vo1113531.Wrap( -1 )
+        bSizer51113531.Add( self.Vo1113531, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 0 )
+
+        self.Text_Iq_CONTROLLER = wx.TextCtrl( self.m_panel3, wx.ID_ANY, '100', wx.DefaultPosition, wx.Size( 54,18 ), 0 )
+        bSizer51113531.Add( self.Text_Iq_CONTROLLER, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 0 )
+
+        self.Vi11213531 = wx.StaticText( self.m_panel3, wx.ID_ANY, u"uA", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Vi11213531.Wrap( -1 )
+        bSizer51113531.Add( self.Vi11213531, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 0 )
+
+        bSizer3111.Add( bSizer51113531, 0, wx.EXPAND, 0 )
+
+        bSizer51113 = wx.BoxSizer( wx.HORIZONTAL )
+        self.Vo1113 = wx.StaticText( self.m_panel3, wx.ID_ANY, u"#_of_Phase =", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Vo1113.Wrap( -1 )
+        bSizer51113.Add( self.Vo1113, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 0 )
+
+        self.Text_of_Phase = wx.TextCtrl( self.m_panel3, wx.ID_ANY, '1', wx.DefaultPosition, wx.Size( 48,18 ), 0 )
+        bSizer51113.Add( self.Text_of_Phase, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 0 )
+
+        self.Vi11213 = wx.StaticText( self.m_panel3, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Vi11213.Wrap( -1 )
+        bSizer51113.Add( self.Vi11213, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 0 )
+
+        bSizer3111.Add( bSizer51113, 0, wx.EXPAND, 0 )
+
+        bSizer61.Add( bSizer3111, 0, wx.EXPAND, 0 )
+
+
+        sbSizer61.Add( bSizer61, 1, wx.EXPAND, 5 )
+
+
+        bSizer181.Add( sbSizer61, 1, wx.EXPAND, 5 )
+
+        bSizer54 = wx.BoxSizer( wx.VERTICAL )
+
+        sbSizer311 = wx.StaticBoxSizer( wx.StaticBox( self.m_panel3, wx.ID_ANY, u"Results" ), wx.VERTICAL )
+
+        bSizer135 = wx.BoxSizer( wx.HORIZONTAL )
+
+        bSizer131 = wx.BoxSizer( wx.VERTICAL )
+
+        self.Label_Po_calc = wx.StaticText( self.m_panel3, wx.ID_ANY, u"Po_calc =", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Label_Po_calc.Wrap( -1 )
+        self.Label_Po_calc.SetFont( wx.Font( 8, 70, 90, 91, False, wx.EmptyString ) )
+        bSizer131.Add( self.Label_Po_calc, 0, wx.ALL, 2 )
+
+        self.Label_P_Loss_Lnd_DC = wx.StaticText( self.m_panel3, wx.ID_ANY, u"P_Loss_Ind_DC =", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Label_P_Loss_Lnd_DC.Wrap( -1 )
+        self.Label_P_Loss_Lnd_DC.SetFont( wx.Font( 8, 70, 90, 91, False, wx.EmptyString ) )
+        bSizer131.Add( self.Label_P_Loss_Lnd_DC, 0, wx.ALL, 2 )
+
+        self.Label_P_Loss_Lnd_core = wx.StaticText( self.m_panel3, wx.ID_ANY, u"P_Loss_Ind_core =", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Label_P_Loss_Lnd_core.Wrap( -1 )
+        self.Label_P_Loss_Lnd_core.SetFont( wx.Font( 8, 70, 90, 91, False, wx.EmptyString ) )
+        bSizer131.Add( self.Label_P_Loss_Lnd_core, 0, wx.ALL, 2 )
+
+        self.Label_P_Loss_Lnd_Total = wx.StaticText( self.m_panel3, wx.ID_ANY, u"P_Loss_Ind_Total =", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Label_P_Loss_Lnd_Total.Wrap( -1 )
+        self.Label_P_Loss_Lnd_Total.SetFont( wx.Font( 8, 70, 90, 91, False, wx.EmptyString ) )
+        bSizer131.Add( self.Label_P_Loss_Lnd_Total, 0, wx.ALL, 2 )
+
+        self.Label_Duty_cycle = wx.StaticText( self.m_panel3, wx.ID_ANY, u"Duty_cycle =", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Label_Duty_cycle.Wrap( -1 )
+        self.Label_Duty_cycle.SetFont( wx.Font( 8, 70, 90, 91, False, wx.EmptyString ) )
+        bSizer131.Add( self.Label_Duty_cycle, 0, wx.ALL, 2 )
+
+        self.Label_P_dc_loss_TOP_MOS = wx.StaticText( self.m_panel3, wx.ID_ANY, u"P_dc_loss_TOP_MOS =        ", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Label_P_dc_loss_TOP_MOS.Wrap( -1 )
+        self.Label_P_dc_loss_TOP_MOS.SetFont( wx.Font( 8, 70, 90, 91, False, wx.EmptyString ) )
+        bSizer131.Add( self.Label_P_dc_loss_TOP_MOS, 0, wx.ALL, 2 )
+
+        self.Label_P_dc_loss_SYNC_MOS = wx.StaticText( self.m_panel3, wx.ID_ANY, u"P_dc_loss_SYNC_MOS =     ", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Label_P_dc_loss_SYNC_MOS.Wrap( -1 )
+        self.Label_P_dc_loss_SYNC_MOS.SetFont( wx.Font( 8, 70, 90, 91, False, wx.EmptyString ) )
+        bSizer131.Add( self.Label_P_dc_loss_SYNC_MOS, 0, wx.ALL, 2 )
+
+        self.Label_P_dc_loss_Total = wx.StaticText( self.m_panel3, wx.ID_ANY, u"P_dc_loss_Total =", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Label_P_dc_loss_Total.Wrap( -1 )
+        self.Label_P_dc_loss_Total.SetFont( wx.Font( 8, 70, 90, 91, False, wx.EmptyString ) )
+        bSizer131.Add( self.Label_P_dc_loss_Total, 0, wx.ALL, 0 )
+
+        bSizer135.Add( bSizer131, 1, wx.EXPAND, 5 )
+
+        bSizer1311 = wx.BoxSizer( wx.VERTICAL )
+
+        self.Label_P_ac_loss = wx.StaticText( self.m_panel3, wx.ID_ANY, u"P_ac_loss =", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Label_P_ac_loss.SetFont( wx.Font( 8, 70, 90, 91, False, wx.EmptyString ) )
+        self.Label_P_ac_loss.Wrap( -1 )
+        #self.Label_P_ac_loss.SetFont( wx.Font( wx.NORMAL_FONT.GetPointSize(), 70, 90, 91, False, wx.EmptyString ) )
+
+        bSizer1311.Add( self.Label_P_ac_loss, 0, wx.ALL, 2 )
+
+        self.Label_P_loss_dead_band = wx.StaticText( self.m_panel3, wx.ID_ANY, u"P_loss_dead_band = ", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Label_P_loss_dead_band.Wrap( -1 )
+        self.Label_P_loss_dead_band.SetFont( wx.Font(8, 70, 90, 91, False, wx.EmptyString ))
+
+        bSizer1311.Add( self.Label_P_loss_dead_band, 0, wx.ALL, 2 )
+
+        self.Label_P_loss_HS_gate = wx.StaticText( self.m_panel3, wx.ID_ANY, u"P_loss_HS_gate = ", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Label_P_loss_HS_gate.Wrap( -1 )
+        self.Label_P_loss_HS_gate.SetFont( wx.Font(8, 70, 90, 91, False, wx.EmptyString ))
+
+        bSizer1311.Add( self.Label_P_loss_HS_gate, 0, wx.ALL, 2 )
+
+        self.Label_P_loss_LS_gate = wx.StaticText( self.m_panel3, wx.ID_ANY, u"P_loss_LS_gate = ", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Label_P_loss_LS_gate.SetFont( wx.Font(8, 70, 90, 91, False, wx.EmptyString ))
+        self.Label_P_loss_LS_gate.Wrap( -1 )
+
+
+        bSizer1311.Add( self.Label_P_loss_LS_gate, 0, wx.ALL, 2 )
+
+        self.Label_P_loss_Qg = wx.StaticText( self.m_panel3, wx.ID_ANY, u"P_loss_Qg =", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Label_P_loss_Qg.SetFont( wx.Font(8, 70, 90, 91, False, wx.EmptyString ))
+        self.Label_P_loss_Qg.Wrap( -1 )
+
+
+        bSizer1311.Add( self.Label_P_loss_Qg, 0, wx.ALL, 2 )
+
+        self.Label_P_loss_controller = wx.StaticText( self.m_panel3, wx.ID_ANY, u"P_loss_controller =", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Label_P_loss_controller.SetFont( wx.Font(8, 70, 90, 91, False, wx.EmptyString ))
+        self.Label_P_loss_controller.Wrap( -1 )
+
+
+        bSizer1311.Add( self.Label_P_loss_controller, 0, wx.ALL, 2 )
+
+        self.Label_Sum_P_loss = wx.StaticText( self.m_panel3, wx.ID_ANY, u"Sum_P_loss =", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Label_Sum_P_loss.SetFont( wx.Font(8, 70, 90, 91, False, wx.EmptyString ))
+        self.Label_Sum_P_loss.Wrap( -1 )
+
+
+        bSizer1311.Add( self.Label_Sum_P_loss, 0, wx.ALL, 2 )
+
+        self.Label_Efficiency = wx.StaticText( self.m_panel3, wx.ID_ANY, u"Efficiency =", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Label_Efficiency.SetFont( wx.Font(8, 70, 90, 91, False, wx.EmptyString ) )
+        self.Label_Efficiency.Wrap( -1 )
+
+
+        bSizer1311.Add( self.Label_Efficiency, 0, wx.ALL, 2 )
+
+        bSizer135.Add( bSizer1311, 1, wx.EXPAND, 5 )
+
+
+        sbSizer311.Add( bSizer135, 1, wx.EXPAND, 5 )
+
+        bSizer54.Add( sbSizer311, 1, wx.EXPAND, 0 )
+
+        sbSizer15 = wx.StaticBoxSizer( wx.StaticBox( self.m_panel3, wx.ID_ANY, u"Rds_on Fixed by Temperature" ), wx.VERTICAL )
+
+        bSizer551 = wx.BoxSizer( wx.VERTICAL )
+
+        self.Check_Rds_on = wx.CheckBox( self.m_panel3, wx.ID_ANY, u"Enable", wx.DefaultPosition, wx.DefaultSize, 0 )
+        bSizer551.Add( self.Check_Rds_on, 0, wx.ALL, 0 )
+
+        bSizer571 = wx.BoxSizer( wx.HORIZONTAL )
+
+        self.m_staticText391 = wx.StaticText( self.m_panel3, wx.ID_ANY, u"\u03B8ja=", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.m_staticText391.Wrap( -1 )
+        bSizer571.Add( self.m_staticText391, 0, wx.ALL, 0 )
+
+        self.Text_Theta_JA = wx.TextCtrl( self.m_panel3, wx.ID_ANY, u"25", wx.DefaultPosition, wx.Size( 36,18 ), 0 )
+        self.Text_Theta_JA.Enable( False )
+
+        bSizer571.Add( self.Text_Theta_JA, 0, wx.ALL, 0 )
+
+        self.Vi1211 = wx.StaticText( self.m_panel3, wx.ID_ANY, u"\u2103/W, ", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Vi1211.Wrap( -1 )
+        bSizer571.Add( self.Vi1211, 0, wx.ALL, 0 )
+
+        self.m_staticText3911 = wx.StaticText( self.m_panel3, wx.ID_ANY, u"Ta=", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.m_staticText3911.Wrap( -1 )
+        bSizer571.Add( self.m_staticText3911, 0, wx.ALL, 0 )
+
+        self.Text_TA = wx.TextCtrl( self.m_panel3, wx.ID_ANY, u"25", wx.DefaultPosition, wx.Size( 24,18 ), 0 )
+        self.Text_TA.Enable( False )
+
+        bSizer571.Add( self.Text_TA, 0, wx.ALL, 0 )
+
+        self.m_staticText39111 = wx.StaticText( self.m_panel3, wx.ID_ANY, u"\u2103, ", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.m_staticText39111.Wrap( -1 )
+        bSizer571.Add( self.m_staticText39111, 0, wx.ALL, 0 )
+
+        self.m_staticText39112 = wx.StaticText( self.m_panel3, wx.ID_ANY, u"TC1=", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.m_staticText39112.Wrap( -1 )
+        bSizer571.Add( self.m_staticText39112, 0, wx.ALL, 0 )
+
+        self.Text_TC1 = wx.TextCtrl( self.m_panel3, wx.ID_ANY, u"3500", wx.DefaultPosition, wx.Size( 40,18 ), 0 )
+        self.Text_TC1.Enable( False )
+
+        bSizer571.Add( self.Text_TC1, 0, wx.ALL, 0 )
+
+        self.m_staticText391111 = wx.StaticText( self.m_panel3, wx.ID_ANY, u"ppm", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.m_staticText391111.Wrap( -1 )
+        bSizer571.Add( self.m_staticText391111, 0, wx.ALL, 0 )
+
+
+        bSizer551.Add( bSizer571, 1, wx.EXPAND, 5 )
+
+        bSizer562 = wx.BoxSizer( wx.HORIZONTAL )
+
+        bSizer5621 = wx.BoxSizer( wx.HORIZONTAL )
+
+        self.Label_Rds_on_High_Side_T = wx.StaticText( self.m_panel3, wx.ID_ANY, u"Rds_on_High=           \u03A9,  ", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Label_Rds_on_High_Side_T.Wrap( -1 )
+        bSizer5621.Add( self.Label_Rds_on_High_Side_T, 0, wx.ALL, 0 )
+
+        self.Label_Rds_on_Low_Side_T = wx.StaticText( self.m_panel3, wx.ID_ANY, u"Rds_on_Low=           \u03A9", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Label_Rds_on_Low_Side_T.Wrap( -1 )
+        bSizer5621.Add( self.Label_Rds_on_Low_Side_T, 0, wx.ALL, 0 )
+
+
+        bSizer562.Add( bSizer5621, 1, wx.EXPAND, 0 )
+
+
+        bSizer551.Add( bSizer562, 1, wx.EXPAND, 0 )
+
+
+        sbSizer15.Add( bSizer551, 1, wx.EXPAND, 0 )
+
+
+        bSizer54.Add( sbSizer15, 1, wx.EXPAND, 0 )
+
+
+
+        bSizer181.Add( bSizer54, 1, wx.EXPAND, 5 )
+        #bSizer181.Add( sbSizer311, 1, wx.EXPAND, 5 )
+
+        sbSizer81 = wx.StaticBoxSizer( wx.StaticBox( self.m_panel3, wx.ID_ANY, u"Calculate" ), wx.VERTICAL )
+
+        self.Bt_Efficiency = wx.Button( self.m_panel3, wx.ID_ANY, u"Efficiency", wx.DefaultPosition, wx.DefaultSize, 0 )
+        sbSizer81.Add( self.Bt_Efficiency, 0, wx.ALL, 5 )
+
+        sbSizer20 = wx.StaticBoxSizer( wx.StaticBox( self.m_panel3, wx.ID_ANY, u"Sweep Io" ), wx.VERTICAL )
+
+        bSizer136 = wx.BoxSizer( wx.HORIZONTAL )
+
+        self.m_staticText244 = wx.StaticText( self.m_panel3, wx.ID_ANY, u"Io_Start =", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.m_staticText244.Wrap( -1 )
+        bSizer136.Add( self.m_staticText244, 0, wx.ALL, 5 )
+
+        self.Text_Io_Start = wx.TextCtrl( self.m_panel3, wx.ID_ANY, '0.01', wx.DefaultPosition, (48,18), 0 )
+        bSizer136.Add( self.Text_Io_Start, 0, wx.ALL, 5 )
+
+        self.m_staticText2442 = wx.StaticText( self.m_panel3, wx.ID_ANY, u"A", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.m_staticText2442.Wrap( -1 )
+        bSizer136.Add( self.m_staticText2442, 0, wx.ALL, 5 )
+
+        sbSizer20.Add( bSizer136, 1, wx.EXPAND, 0 )
+
+        bSizer1361 = wx.BoxSizer( wx.HORIZONTAL )
+
+        self.m_staticText2441 = wx.StaticText( self.m_panel3, wx.ID_ANY, u"Io_Stop =", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.m_staticText2441.Wrap( -1 )
+        bSizer1361.Add( self.m_staticText2441, 0, wx.ALL, 5 )
+
+        self.Text_Io_Stop = wx.TextCtrl( self.m_panel3, wx.ID_ANY, '3.5', wx.DefaultPosition, (48,18), 0 )
+        bSizer1361.Add( self.Text_Io_Stop, 0, wx.ALL, 5 )
+
+        self.m_staticText24421 = wx.StaticText( self.m_panel3, wx.ID_ANY, u"A", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.m_staticText24421.Wrap( -1 )
+        bSizer1361.Add( self.m_staticText24421, 0, wx.ALL, 5 )
+
+        sbSizer20.Add( bSizer1361, 1, wx.EXPAND, 0 )
+
+
+        bSizer13611 = wx.BoxSizer( wx.HORIZONTAL )
+
+        self.m_staticText24411 = wx.StaticText( self.m_panel3, wx.ID_ANY, u"      Step =", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.m_staticText24411.Wrap( -1 )
+        bSizer13611.Add( self.m_staticText24411, 0, wx.ALL, 5 )
+
+        self.Text_Io_Step = wx.TextCtrl( self.m_panel3, wx.ID_ANY, '10', wx.DefaultPosition,  (48,18), 0 )
+        bSizer13611.Add( self.Text_Io_Step, 0, wx.ALL, 5 )
+
+        self.m_staticText244211 = wx.StaticText( self.m_panel3, wx.ID_ANY, u"Points", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.m_staticText244211.Wrap( -1 )
+        bSizer13611.Add( self.m_staticText244211, 0, wx.ALL, 5 )
+
+
+        sbSizer20.Add( bSizer13611, 1, wx.EXPAND, 5 )
+
+        self.Check_Enable_Plot_Log = wx.CheckBox( self.m_panel3, wx.ID_ANY, u"Plot Semilog @ Io", wx.DefaultPosition, wx.DefaultSize, 0 )
+        sbSizer20.Add( self.Check_Enable_Plot_Log, 0, wx.ALL, 5 )
+
+        self.Bt_Sweep_Effi = wx.Button( self.m_panel3, wx.ID_ANY, u"Sweep Effi", wx.DefaultPosition, wx.DefaultSize, 0 )
+        sbSizer20.Add( self.Bt_Sweep_Effi, 0, wx.ALL, 5 )
+
+
+        sbSizer81.Add( sbSizer20, 0, wx.EXPAND, 0 )
+
+
+
+        bSizer181.Add( sbSizer81, 1, wx.EXPAND, 5 )
+
+
+        self.m_panel3.SetSizer( bSizer181 )
+        self.m_panel3.Layout()
+        bSizer181.Fit( self.m_panel3 )
+
+        self.m_notebook1.AddPage( self.m_panel3, u"Efficiency", True )
+        self.m_notebook1.AddPage( self.m_panel1, u"Transfer Function", False )
+        self.m_notebook1.AddPage( self.m_panel2, u"Compensation", True )
+
+        sbSizer2.Add( self.m_notebook1, 1, wx.EXPAND |wx.ALL, 5 )
+
+        bSizer1.Add( sbSizer2, 1, wx.EXPAND, 5 )
+
+
+        self.SetSizer( bSizer1 )
+        self.Layout()
+
+        self.Centre( wx.BOTH )
+
+        # Connect Events
+        self.Bt_Calculate.Bind( wx.EVT_BUTTON, self.Ev_Calculate )
+        self.Check_VSL.Bind( wx.EVT_CHECKBOX, self.Ev_Check_VSL )
+        self.Check_RcCc.Bind( wx.EVT_CHECKBOX, self.Ev_Check_RcCc )
+        self.Check_Rds_on.Bind( wx.EVT_CHECKBOX, self.Ev_Check_Rds_on )
+        #self.m_notebook1.Bind( wx.EVT_NOTEBOOK_PAGE_CHANGED, self.Ev_NotebookPageChanged )
+        self.m_choice_process.Bind( wx.EVT_CHOICE, self.Ev_choice_process )
+        self.Check_Enable_Plot_Log.Bind( wx.EVT_CHECKBOX, self.Ev_Check_Enable_Plot_Log )
+        self.m_notebook1.Bind( wx.EVT_NOTEBOOK_PAGE_CHANGED, self.Ev_NotebookPageChanging )
+        self.Bt_Efficiency.Bind( wx.EVT_BUTTON, self.Ev_Efficiency )
+        self.Bt_Compensation.Bind( wx.EVT_BUTTON, self.Ev_Compensation )
+        self.Bt_Sweep_Effi.Bind( wx.EVT_BUTTON, self.Ev_Sweep_Effi )
+
+    def Init_plot(self):
+        self.dpi = 100
+        self.fig = Figure((9, 3.5), dpi=self.dpi)
+
+        self.axes1 = self.fig.add_subplot(121)
+        self.axes1.set_axis_bgcolor('white')
+        #self.axes.set_title('Bode Plot', size=10)
+        self.axes1.set_xlabel('Frequency(Hz)', size=8)
+        self.axes1.set_ylabel('Magnitude(dB)', size=8)
+        self.axes1.grid(True, color='gray')
+        pylab.setp(self.axes1.get_xticklabels(), fontsize=6)
+        pylab.setp(self.axes1.get_yticklabels(), fontsize=6)
+
+        self.axes2 = self.fig.add_subplot(122)
+        self.axes2.set_axis_bgcolor('white')
+        self.axes2.set_xlabel('Frequency(Hz)', size=8)
+        self.axes2.set_ylabel('Phase(degree)', size=8)
+        self.axes2.grid(True, color='gray')
+
+        pylab.setp(self.axes2.get_xticklabels(), fontsize=6)
+        pylab.setp(self.axes2.get_yticklabels(), fontsize=6)
+
+        # plot the data as a line series, and save the reference
+        # to the plotted line series
+        #
+
+        self.plot_mag = self.axes1.plot(
+            #self.data,
+            [],
+            linewidth=1,
+            color=(1, 1, 0),
+        )[0]
+
+        self.plot_pha = self.axes2.plot(
+            #self.data,
+            [],
+            linewidth=1,
+            color=(1, 1, 0),
+        )[0]
+
+    def One_Fetch_TR_Parameters(self, mc):
+        try:
+            Vi = float(self.Text_Vi.Value)
+            Vo = float(self.Text_Vo.Value)
+            #Se=float(self.Text_Se.Value)
+            Ts = 1 / (float(self.Text_Fs.Value)*10**3)
+            Rc = float(self.Text_Rc.Value)*10**-3
+            Co = float(self.Text_Co.Value)*10**-6
+            Lo = float(self.Text_Lo.Value)*10**-6
+            Ro = float(self.Text_Ro.Value)
+            Ri = float(self.Text_Ri.Value)*10**-3
+        except:
+            wx.MessageBox('Please enter all parameter correctly!', 'Error',wx.ICON_EXCLAMATION | wx.STAY_ON_TOP)
+
+        D = Vo / Vi
+        _D = 1 - D
+        #mc=1 #+((Se*Lo)/((Vi-Vo)*Rsen))
+        Qc = 1 / (np.pi * (mc * _D - 0.5))
+        Wp1 = (1 / (Ro * Co)) + ((Ts / (Lo * Co)) * (mc * _D - 0.5))
+        Wz = 1 / (Rc * Co)
+        Gain = Ro / (Ri * (1 + Ro * Ts / Lo * (mc * _D - 0.5)))
+
+        self.Label_D.Label = "D = %.2e" %D
+        self.Label_mc.Label = "mc = %.2e" %mc
+        self.Label_Qc.Label = "Qc = %.2e" %Qc
+
+        return Qc, Wp1, Wz, Ts, Gain
+
+    def Two_Transfer_Function_BUCK(self, Qc, Wp1, Wz, Ts, Gain):
+        # using Current_Mode_Transfer_Function.py to develop ...
+        a1 = np.pi ** 2 * Qc * Wp1
+        a0 = np.pi ** 2 * Qc * Wp1 * Wz
+        b3 = Qc * Ts ** 2 * Wz
+        b2 = np.pi * Ts * Wz + Qc * Ts ** 2 * Wp1 * Wz
+        b1 = np.pi ** 2 * Qc * Wz + np.pi * Ts * Wp1 * Wz
+        b0 = np.pi ** 2 * Qc * Wp1 * Wz
+        num = [a1, a0]
+        den = [b3, b2, b1, b0]
+        num = np.multiply(Gain, num)
+        #print "BUCK Gain is: " + str(Gain)
+        return num, den
+
+    def Three_Bode_Plot(self, num, den):
+        s1 = signal.lti(num, den)
+        w, mag, pha = signal.bode(s1, np.logspace(1, 9, 1e3))
+        freq = np.multiply((1 / (2 * np.pi)), w)
+
+        return freq, mag, pha
+
+    def Four_Margin(self, freq, mag, pha):
+        try:
+            index_cross_ZeroMag = np.where(mag < 0)[0][0]
+            #print index_cross_ZeroMag
+        except:
+            wx.MessageBox("There are no any Zeros", 'Error',wx.ICON_EXCLAMATION | wx.STAY_ON_TOP)
+        try:
+            inex_cross_180deg = np.where(pha < -178)[0][0]
+        except:
+            wx.MessageBox("There are no any Poles", 'Error',wx.ICON_EXCLAMATION | wx.STAY_ON_TOP)
+
+        freq_cross_ZeroMag = freq[index_cross_ZeroMag]
+        pha_cross_ZeroMag = np.interp(freq[index_cross_ZeroMag], freq, pha)
+        freq_cross_180deg = freq[inex_cross_180deg]
+        mag_cross_180deg = np.interp(freq[inex_cross_180deg], freq, mag)
+
+        self.label_frcoss.Label = "f-cross = %.2e Hz" %freq_cross_ZeroMag
+        return freq_cross_ZeroMag, pha_cross_ZeroMag, freq_cross_180deg, mag_cross_180deg
+
+    def Five_Pole_Zero(self, num, den):
+        rad_zeros, rad_poles, gain = signal.tf2zpk(num, den)
+        # Show Buck Poles/Zeros
+        try:
+            self.Label_Wp1.Label = "fp1 = %.2e Hz" %(np.abs(rad_poles[2]) / (2 * np.pi))
+            self.Label_Wp2.Label = "fp2 = %.2e Hz" %((np.abs(rad_poles[1]) / (2 * np.pi)))
+            self.Label_Wp3.Label = "fp3 = %.2e Hz" %(np.abs(rad_poles[0]) / (2 * np.pi))
+            self.Label_Wz.Label = "fz = %.2e Hz" %((np.abs(rad_zeros[0]) / (2 * np.pi)))
+            self.Label_Gain.Label = "Gain = %.2e dB" %((20 * np.log10(gain)))
+        except:
+            pass
+        return rad_zeros, rad_poles
+
+    def Seven_Plot(self, freq, mag, pha, *args, **kwargs):
+        xmin_f = float(min(freq))
+        xmax_f = float(max(freq))
+        ymin_mag = float(min(mag))
+        ymax_mag = float(max(mag))
+        ymin_phase = float(min(pha))
+        ymax_phase = float(max(pha))
+
+        self.axes1.set_xbound(lower=xmin_f, upper=xmax_f)
+        self.axes1.set_ybound(lower=ymin_mag, upper=ymax_mag)
+        self.axes2.set_xbound(lower=xmin_f, upper=xmax_f)
+        self.axes2.set_ybound(lower=ymin_phase, upper=ymax_phase)
+
+        pylab.setp(self.axes1.get_xticklabels())
+        pylab.setp(self.axes2.get_xticklabels())
+
+        try:
+            color = kwargs['color']
+            linestyle = kwargs['linestyle']
+            self.plot_mag = self.axes1.semilogx(freq, mag, linewidth=1, color=color, linestyle=linestyle)
+        except:
+            self.plot_mag = self.axes1.semilogx(freq, mag, linewidth=1, color=(0, 0, 1))
+
+        # Plot Cross Frequency
+        #if kwargs['freq_cross_ZeroMag'] <> []:
+        try:
+            freq_cross_ZeroMag = kwargs['freq_cross_ZeroMag']
+            self.axes1.plot(freq_cross_ZeroMag, 0, "b^")
+            self.axes1.text(freq_cross_ZeroMag, 5, u"f-cross@" + str(int(freq_cross_ZeroMag)) + u"Hz", color="b",
+                            fontsize=8)
+        except:
+            pass
+
+        # Plot Ploes/Zeros
+        y_pos = 15
+        index = 1
+
+        try:
+            rad_poles = kwargs['rad_poles']
+            for rad_p in rad_poles:
+                f_pole = np.abs(rad_p) / (2 * np.pi)
+                #print f_pole
+                pole_mag = np.interp(f_pole, freq, mag)
+                self.axes1.plot(f_pole, pole_mag, "rx")
+                #self.axes1.text(f_pole/5, pole_mag-10, u"Pole@"+str(int(f_pole))+u"Hz", color="r",fontsize=8 )
+                self.axes1.text(2, mag[0] - y_pos * index, u"Pole@" + str(int(f_pole)) + u"Hz", color="r", fontsize=7)
+                index += 1
+        except:
+            pass
+
+        try:
+            rad_zeros = kwargs['rad_zeros']
+            for rad_z in rad_zeros:
+                f_zero = np.abs(rad_z) / (2 * np.pi)
+                #print f_zero
+                zero_mag = np.interp(f_zero, freq, mag)
+                self.axes1.plot(f_zero, zero_mag, "go")
+                self.axes1.text(2, mag[0] - y_pos * index, u"Zero@" + str(int(f_zero)) + u"Hz", color="g", fontsize=7)
+                index += 1
+        except:
+            pass
+        # Plot Gain Margin
+        try:
+
+            freq_cross_180deg = kwargs['freq_cross_180deg']
+            mag_cross_180deg = kwargs['mag_cross_180deg']
+            self.axes1.text(2, mag[0] - y_pos * index, u"Gain margin=" + str(int(-1 * mag_cross_180deg)) + u"dB", color="b",
+                            fontsize=7)
+
+            self.axes1.hlines(0, freq_cross_180deg / 1.5, freq_cross_180deg * 1.5, linestyles='-', color='b')
+            self.axes1.hlines(mag_cross_180deg, freq_cross_180deg / 1.5, freq_cross_180deg * 1.5, linestyles='-', color='b')
+
+            self.axes1.annotate(
+                '', xy=(freq_cross_180deg, 0), xycoords='data',
+                xytext=(freq_cross_180deg, mag_cross_180deg), textcoords='data',
+                arrowprops=dict(facecolor='c', arrowstyle='<->', connectionstyle="arc3")
+            )
+
+            self.axes1.annotate(
+                u"Gain margin=" + str(int(-1 * mag_cross_180deg)) + u"dB",
+                xy=(freq_cross_180deg, mag_cross_180deg / 2 ), xycoords='data',
+                xytext=(5, 0), textcoords='offset points', fontsize=7,
+                color="b"
+            )
+
+        except:
+            pass
+
+        # Plot Ploes/Zeros
+        y_pos = 20
+        index = 0
+
+        try:
+            color = kwargs['color']
+            linestyle = kwargs['linestyle']
+            self.plot_pha = self.axes2.semilogx(freq, pha, linewidth=1, color=color, linestyle=linestyle)
+        except:
+            self.plot_pha = self.axes2.semilogx(freq, pha, linewidth=1, color=(0, 0, 1))
+
+        # Plot Phase Margin Point
+        try:
+            freq_cross_ZeroMag = kwargs['freq_cross_ZeroMag']
+            pha_cross_ZeroMag = kwargs['pha_cross_ZeroMag']
+            self.axes2.plot(freq_cross_ZeroMag, pha_cross_ZeroMag, "b+")
+            self.axes2.hlines(pha_cross_ZeroMag, freq_cross_ZeroMag / 1.5, freq_cross_ZeroMag * 1.5, linestyles='-',
+                              color='b')
+            self.axes2.hlines(-180, freq_cross_ZeroMag / 1.5, freq_cross_ZeroMag * 1.5, linestyles='-', color='b')
+
+            self.axes2.annotate(
+                '', xy=(freq_cross_ZeroMag, pha_cross_ZeroMag), xycoords='data',
+                xytext=(freq_cross_ZeroMag, -180), textcoords='data',
+                arrowprops=dict(facecolor='b', arrowstyle='<->', connectionstyle="arc3")
+            )
+
+            self.axes2.annotate(
+                u"phase margin=" + str(int(pha_cross_ZeroMag) + 180) + u"deg",
+                xy=(freq_cross_ZeroMag, (pha_cross_ZeroMag + (-180)) / 2 ), xycoords='data',
+                xytext=(5, 0), textcoords='offset points', fontsize=8,
+                color="b"
+            )
+            #self.axes2.text(2, -180, u"Phase margin=" + str(int(pha_cross_ZeroMag) + 180) + u"deg", color="b", fontsize=8)
+        except:
+            pass
+
+        self.canvas.draw()
+
+    def One_Fetch_CC_Parameters(self):
+        try:
+            Rsen = float(self.Text_Ri.Value)*10**-3
+            VREF = float(self.Text_VREF.Value)
+            gm = float(self.Text_gm.Value)*10**-6
+            Vo_max = float(self.Text_Vo_max.Value)
+            Lmin = float(self.Text_L_min.Value)*10**-6
+            L = float(self.Text_Lo.Value)*10**-6
+            Vi = float(self.Text_Vi.Value)
+            Vo = float(self.Text_Vo.Value)
+            Co = float(self.Text_Co.Value)*10**-6
+            Ro = float(self.Text_Ro.Value)
+            fs = float(self.Text_Fs.Value)*10**3
+            f_cross = float(self.Text_F_CROSS.Value)*10**3
+        except:
+            wx.MessageBox('Please enter all parameter correctly!', 'Error',wx.ICON_EXCLAMATION | wx.STAY_ON_TOP)
+
+        Ts = 1 / fs
+
+        D = Vo / Vi
+        _D = 1 - D
+        ma = 0.5 * (Vo_max / Lmin)
+        #print "ma= " + str(ma)
+        mi = Rsen * ma
+        if self.Check_VSL.Value == 1:
+            VSL = float(self.Text_VSL.Value)
+        else:
+            VSL = mi * Ts
+            self.Text_VSL.Value = str(VSL)
+
+        #print VSL
+        #print "VSL= " + str(VSL)
+        Se = VSL / Ts
+        Sn = Rsen * (Vi - Vo) / L
+        Ai = 1
+        #mc = 1 + (fs*Lmin*VSL)/(Rsen*(Vi_max-Vo))
+        mc = 1 + Se / Sn
+        #print mc
+        H = VREF / Vo
+        Wp = 1 / (Co * Ro) + (mc * _D - 0.5) / (Co * L / Ts)
+        fp = (1 / (2 * np.pi)) * Wp
+        Ac = (Ro / (Ai * Rsen)) * (1 / (1 + Ro * (mc * _D - 0.5) / (L / Ts)))
+        Rc = f_cross / (fp * Ac * H * gm)
+        Zc = fp
+        Cc = 1 / (2 * np.pi * Zc * Rc)
+
+        self.Label_H.Label = "H = %.2e" %H
+        self.Label_fp.Label = "fp = %.2e Hz" %fp
+        self.Label_Rc.Label = u"Comp Rc = %.2e \u03A9" %Rc
+        self.Label_Cc.Label = "Comp Cc = %.2e F" %Cc
+        self.Label_Ac.Label = "Ac = %.2e" %Ac
+        self.Label_mc1.Label = "mc = %.2e" %mc
+        return H, Ac, Rc, Cc, mc
+
+    def Two_Transfer_Function_Compensator(self, H, Ac, Rc, Cc):
+        ro = float(self.Text_ro.Value)
+        gm = float(self.Text_gm.Value)*10**-6
+        #print "gm is:" + str(gm)
+        a1 = ro * Cc * Rc
+        a0 = ro
+        b1 = Cc * Rc + Cc * ro
+        b0 = 1
+        Gain = gm
+        #print "Controller Gain is: " + str(Gain)
+        num = [a1, a0]
+        den = [b1, b0]
+        num = np.multiply(Gain, num)
+
+        TR_Gain = Ac * H
+
+        return num, den, TR_Gain
+
+    def Two_Transfer_Function_TOTAL(self, *args, **kwargs):
+        Qc = kwargs['Qc']
+        Wp1 = kwargs['Wp1']
+        Wz = kwargs['Wz']
+        Ts = kwargs['Ts']
+        Gain_MOS = kwargs['Gain_MOS']
+        H = kwargs['H']
+        Ac = kwargs['Ac']
+        Rc = kwargs['Rc']
+        Cc = kwargs['Cc']
+
+        ro = float(self.Text_ro.Value)
+        gm = float(self.Text_gm.Value)*10**-6
+
+        a2 = Cc * np.pi ** 2 * Qc * Rc * Wp1 * ro
+        a1 = Cc * np.pi ** 2 * Qc * Rc * Wp1 * Wz * ro + np.pi ** 2 * Qc * Wp1 * ro
+        a0 = np.pi ** 2 * Qc * Wp1 * Wz * ro
+        b4 = Cc * Qc * Rc * Ts ** 2 * Wz + Cc * Qc * Ts ** 2 * Wz * ro
+        b3 = Cc * np.pi * Rc * Ts * Wz + Cc * np.pi * Ts * Wz * ro + Cc * Qc * Rc * Ts ** 2 * Wp1 * Wz + Cc * Qc * Ts ** 2 * Wp1 * Wz * ro + Qc * Ts ** 2 * Wz
+        b2 = Cc * np.pi ** 2 * Qc * Rc * Wz + Cc * np.pi ** 2 * Qc * Wz * ro + Cc * np.pi * Rc * Ts * Wp1 * Wz + Cc * np.pi * Ts * Wp1 * Wz * ro + np.pi * Ts * Wz + Qc * Ts ** 2 * Wp1 * Wz
+        b1 = Cc * np.pi ** 2 * Qc * Rc * Wp1 * Wz + Cc * np.pi ** 2 * Qc * Wp1 * Wz * ro + np.pi ** 2 * Qc * Wz + np.pi * Ts * Wp1 * Wz
+        b0 = np.pi ** 2 * Qc * Wp1 * Wz
+
+        Gain_Controller = gm
+
+        num = [a2, a1, a0]
+        den = [b4, b3, b2, b1, b0]
+        num = np.multiply(Gain_MOS * Gain_Controller, num)
+
+        return num, den
+
+    def Iinitial_effi_Figure(self):
+        # Clear Figure
+        self.fig.clf()
+        self.axes1 = self.fig.add_subplot(121)
+        self.axes1.set_axis_bgcolor('white')
+        self.axes2 = self.fig.add_subplot(122)
+        self.axes2.set_axis_bgcolor('white')
+        #print "select effi"
+
+
+        try:
+            self.axes1.clear()
+            self.axes1.set_xlabel('', size=8)
+            self.axes1.set_xlabel('I_o(A)', size=8)
+            self.axes1.set_ylabel('Efficiency(%)', size=8)
+            self.axes1.grid(True, color='gray')
+            pylab.setp(self.axes1.get_xticklabels(), fontsize=6)
+            pylab.setp(self.axes1.get_yticklabels(), fontsize=6)
+
+            self.axes2.clear()
+            self.axes2.set_xlabel('I_o(A)', size=8)
+            self.axes2.set_ylabel('Power Loss(Watt)', size=8)
+            self.axes2.grid(True, color='gray')
+            pylab.setp(self.axes2.get_xticklabels(), fontsize=6)
+            pylab.setp(self.axes2.get_yticklabels(), fontsize=6)
+            self.canvas.draw()
+
+            #print "chenae label"
+        except:
+            wx.MessageBox("Initial Efficiency error", 'Error',wx.ICON_EXCLAMATION | wx.STAY_ON_TOP)
+
+            self.canvas.draw()
+
+
+
+        #self.canvas.draw()
+
+    def Clear_Figure(self):
+        # Clear Figure
+        self.fig.clf()
+        self.axes1 = self.fig.add_subplot(121)
+        self.axes1.set_axis_bgcolor('white')
+        self.axes2 = self.fig.add_subplot(122)
+        self.axes2.set_axis_bgcolor('white')
+        try:
+            self.axes1.clear()
+            self.axes1.set_xlabel('', size=8)
+            self.axes1.set_xlabel('Frequency(Hz)', size=8)
+            self.axes1.set_ylabel('Magnitude(dB)', size=8)
+            self.axes1.grid(True, color='gray')
+            pylab.setp(self.axes1.get_xticklabels(), fontsize=6)
+            pylab.setp(self.axes1.get_yticklabels(), fontsize=6)
+
+            self.axes2.clear()
+            self.axes2.set_xlabel('Frequency(Hz)', size=8)
+            self.axes2.set_ylabel('Phase(deg)', size=8)
+            self.axes2.grid(True, color='gray')
+            pylab.setp(self.axes2.get_xticklabels(), fontsize=6)
+            pylab.setp(self.axes2.get_yticklabels(), fontsize=6)
+            self.canvas.draw()
+        except:
+            wx.MessageBox("Clear Figure error", 'Error',wx.ICON_EXCLAMATION | wx.STAY_ON_TOP)
+
+    def Ev_Calculate(self, event):
+        self.Clear_Figure()
+        Qc, Wp1, Wz, Ts, Gain = self.One_Fetch_TR_Parameters(mc=1)
+        num, den = self.Two_Transfer_Function_BUCK(Qc, Wp1, Wz, Ts, Gain)
+        freq, mag, pha = self.Three_Bode_Plot(num, den)
+        freq_cross_ZeroMag, pha_cross_ZeroMag, freq_cross_180deg, mag_cross_180deg = self.Four_Margin(freq, mag, pha)
+        rad_zeros, rad_poles = self.Five_Pole_Zero(num, den)
+        self.Seven_Plot(freq, mag, pha,
+                        freq_cross_ZeroMag=freq_cross_ZeroMag,
+                        pha_cross_ZeroMag=pha_cross_ZeroMag,
+                        freq_cross_180deg=freq_cross_180deg,
+                        mag_cross_180deg=mag_cross_180deg,
+                        rad_poles=rad_poles,
+                        rad_zeros=rad_zeros,
+                        color=(0, 0, 1)
+                        )
+
+    def Ev_Compensation(self, event):
+        self.Clear_Figure()
+        H, Ac, Rc, Cc, mc = self.One_Fetch_CC_Parameters()
+        Qc, Wp1, Wz, Ts, Gain = self.One_Fetch_TR_Parameters(mc=mc)
+
+        if self.Check_RcCc.Value == 1:
+            Rc = float(self.Text_Comp_Rc.Value)
+            Cc = float(self.Text_Comp_Cc.Value)*10**-9
+            fz = 1/(2*np.pi*Rc*Cc)
+            self.Label_Comp_Zero.Label = "Compensator fz = %.2e Hz" %fz
+
+        #print "Rc = "+ str(Rc)
+        #print "Cc = "+ str(Cc)
+        num_CONTROLLER, den_CONTROLLER, New_TR_Gain = self.Two_Transfer_Function_Compensator(H, Ac, Rc, Cc)
+        num_BUCK, den_BUCK = self.Two_Transfer_Function_BUCK(Qc, Wp1, Wz, Ts, New_TR_Gain)
+        num_TOTAL, den_TOTAL = self.Two_Transfer_Function_TOTAL(Qc=Qc, Wp1=Wp1, Wz=Wz, Ts=Ts, Gain_MOS=New_TR_Gain, H=H,
+                                                                Ac=Ac, Rc=Rc, Cc=Cc)
+        if self.Check_Transfer_Function.Value == 1:
+            freq, mag, pha = self.Three_Bode_Plot(num_BUCK, den_BUCK)
+            rad_zeros, rad_poles = self.Five_Pole_Zero( num_BUCK, den_BUCK )
+            self.Seven_Plot(freq, mag, pha,
+                            #freq_cross_ZeroMag = freq_cross_ZeroMag,
+                            #pha_cross_ZeroMag = pha_cross_ZeroMag,
+                            #freq_cross_180deg = freq_cross_180deg,
+                            #mag_cross_180deg = mag_cross_180deg,
+                            #rad_poles = rad_poles,
+                            #rad_zeros = rad_zeros,
+                            color = (0,1,0),
+                            linestyle = '--'
+                            )
+        if self.Check_Comppensator.Value == 1:
+            freq, mag, pha = self.Three_Bode_Plot(num_CONTROLLER, den_CONTROLLER)
+            #print mag
+            rad_zeros, rad_poles = self.Five_Pole_Zero( num_CONTROLLER, den_CONTROLLER )
+            self.Seven_Plot(freq, mag, pha,
+                            #freq_cross_ZeroMag = freq_cross_ZeroMag,
+                            #pha_cross_ZeroMag = pha_cross_ZeroMag,
+                            #freq_cross_180deg = freq_cross_180deg,
+                            #mag_cross_180deg = mag_cross_180deg,
+                            #rad_poles = rad_poles,
+                            #rad_zeros = rad_zeros,
+                            color ='#FF4500',
+                            linestyle = '-.'
+                            )
+
+        if self.Check_Total.Value == 1:
+            freq, mag, pha = self.Three_Bode_Plot(num_TOTAL, den_TOTAL)
+            freq_cross_ZeroMag, pha_cross_ZeroMag, freq_cross_180deg, mag_cross_180deg = self.Four_Margin(freq, mag, pha)
+            rad_zeros_t, rad_poles_t = self.Five_Pole_Zero(num_TOTAL, den_TOTAL)
+            self.Seven_Plot(freq, mag, pha,
+                            freq_cross_ZeroMag=freq_cross_ZeroMag,
+                            pha_cross_ZeroMag=pha_cross_ZeroMag,
+                            freq_cross_180deg=freq_cross_180deg,
+                            mag_cross_180deg=mag_cross_180deg,
+                            rad_poles=rad_poles_t,
+                            rad_zeros=rad_zeros_t,
+                            color=(0, 0, 1),
+                            linestyle='-'
+                            )
+
+    def Ev_Check_VSL(self, event):
+        self.Check_VSL.SetValue(event.IsChecked())
+        if event.IsChecked():
+            self.Text_VSL.Enable(True)
+            self.Text_Vo_max.Enable(False)
+            self.Text_L_min.Enable(False)
+        else:
+            self.Text_VSL.Enable(False)
+            self.Text_Vo_max.Enable(True)
+            self.Text_L_min.Enable(True)
+
+    def Ev_Check_Enable_Plot_Log(self, event):
+        self.Check_Enable_Plot_Log.SetValue(event.IsChecked())
+        """
+        if event.IsChecked():
+            self.Check_Enable_Plot_Log.Enable(True)
+        else:
+            self.Check_Enable_Plot_Log.Enable(False)
+        """
+
+    def Ev_Check_RcCc(self, event):
+        self.Check_RcCc.SetValue(event.IsChecked())
+        if event.IsChecked():
+            self.Text_Comp_Rc.Enable(True)
+            self.Text_Comp_Cc.Enable(True)
+            self.Label_Comp_Zero.Enable(True)
+            self.Label_Rc.Enable(False)
+            self.Label_Cc.Enable(False)
+        else:
+            self.Text_Comp_Rc.Enable(False)
+            self.Text_Comp_Cc.Enable(False)
+            self.Label_Comp_Zero.Enable(False)
+            self.Label_Rc.Enable(True)
+            self.Label_Cc.Enable(True)
+
+    def Ev_Check_Rds_on(self, event):
+        self.Check_Rds_on.SetValue(event.IsChecked())
+        if event.IsChecked():
+            self.Text_Theta_JA.Enable(True)
+            self.Text_TA.Enable(True)
+            self.Text_TC1.Enable(True)
+        else:
+            self.Text_Theta_JA.Enable(False)
+            self.Text_TA.Enable(False)
+            self.Text_TC1.Enable(False)
+
+    def Ev_choice_process(self, event):
+        self.choice_event=event.GetSelection()
+        if event.GetSelection() == 1:  # MLD45G5
+            self.R_W_100k = 197e-3
+            self.W_QG_M = 190849
+            self.QG_WQGM = 7.29e-9
+            self.Text_Qg_HS.Enable(False)
+            self.Text_Qg_LS.Enable(False)
+        if event.GetSelection() == 2:  # MLD36G5
+            self.R_W_100k = 136e-3
+            self.W_QG_M = 204584
+            self.QG_WQGM = 6.02e-9
+            self.Text_Qg_HS.Enable(False)
+            self.Text_Qg_LS.Enable(False)
+        if event.GetSelection() == 3:  # MLD24G5
+            self.R_W_100k = 73.3e-3
+            self.W_QG_M = 274034
+            self.QG_WQGM = 6.02e-9
+            self.Text_Qg_HS.Enable(False)
+            self.Text_Qg_LS.Enable(False)
+        if event.GetSelection() == 4:  # MLD20G5
+            self.R_W_100k = 62.3e-3
+            self.W_QG_M = 310941
+            self.QG_WQGM = 5.83e-9
+            self.Text_Qg_HS.Enable(False)
+            self.Text_Qg_LS.Enable(False)
+        if event.GetSelection() == 5:  # MLD12G5
+            self.R_W_100k = 46.9e-3
+            self.W_QG_M = 390048
+            self.QG_WQGM = 4.55e-9
+            self.Text_Qg_HS.Enable(False)
+            self.Text_Qg_LS.Enable(False)
+        if event.GetSelection() == 6:  # MLD8G5
+            self.R_W_100k = 42.5e-3
+            self.W_QG_M = 425420
+            self.QG_WQGM = 5.14e-9
+            self.Text_Qg_HS.Enable(False)
+            self.Text_Qg_LS.Enable(False)
+        if event.GetSelection() == 7:  # MLD6G5
+            self.R_W_100k = 23.4e-3
+            self.W_QG_M = 611587
+            self.QG_WQGM = 7.81e-9
+            self.Text_Qg_HS.Enable(False)
+            self.Text_Qg_LS.Enable(False)
+        if event.GetSelection() == 8:  # NCH_5
+            self.R_W_100k = 24.6e-3
+            self.W_QG_M = 611587
+            self.QG_WQGM = 7.81e-9
+            self.Text_Qg_HS.Enable(False)
+            self.Text_Qg_LS.Enable(False)
+        if event.GetSelection() == 9:  # External MOS
+            self.Text_Qg_HS.Enable(True)
+            self.Text_Qg_LS.Enable(True)
+
+    def One_Fetech_Effiiency_Parameter(self):
+        try:
+            self.Vo_nom = float(self.Text_Vo_nom.Value)
+            self.VIN = float(self.Text_V_IN.Value)
+            self.Io_Total = float(self.Text_Io_Total.Value)
+            self.I_L_PEAK_PFM = float(self.Text_I_L_PEAK_PFM.Value)
+            self.of_Phase = float(self.Text_of_Phase.Value)
+            self.Lo_Efficiency = float(self.Text_Lo_Efficiency.Value)*10**-6
+            self.Lnd_ESR = float(self.Text_Lnd_ESR.Value)*10**-3
+            self.P_loss_Lnd_core_percent = float(self.Text_P_loss_Lnd_core_percent.Value)*10**-2
+            self.Rds_on_High = float(self.Text_Rds_on_High.Value)*10**-3
+            self.Rds_on_Low = float(self.Text_Rds_on_Low.Value)*10**-3
+            self.Fsw_Per_Phase = float(self.Text_Fsw_Per_Phase.Value)*10**3
+            self.T_lx_rising = float(self.Text_T_lx_rising.Value)*10**-9
+            self.T_lx_falling = float(self.Text_T_lx_falling.Value)*10**-9
+            self.T_dead_L_H = float(self.Text_T_dead_L_H.Value)*10**-9
+            self.T_dead_H_L = float(self.Text_T_dead_H_L.Value)*10**-9
+            self.VF_DIODE = float(self.Text_VF_DIODE.Value)
+            self.PVCC = float(self.Text_PVCC.Value)
+
+
+            if self.choice_event <> 9: #External MOSFET
+                self.Qg_HS = (self.R_W_100k / self.Rds_on_High) * 10**5 / self.W_QG_M * self.QG_WQGM
+                self.Qg_LS = (self.R_W_100k / self.Rds_on_Low)  * 10**5 / self.W_QG_M * self.QG_WQGM
+                self.Text_Qg_HS.Value = str(round(self.Qg_HS*10**9, 2))
+                self.Text_Qg_LS.Value = str(round(self.Qg_LS*10**9, 2))
+            else:
+                self.Qg_HS = float(self.Text_Qg_HS.Value)*10**-9
+                self.Qg_LS = float(self.Text_Qg_LS.Value)*10**-9
+                print "Select External MOS"
+
+            self.Iq_CONTROLLER = float(self.Text_Iq_CONTROLLER.Value)*10**-6
+        except:
+            wx.MessageBox('Please enter all parameter correctly! (Did you select Process?)', 'Error',wx.ICON_EXCLAMATION | wx.STAY_ON_TOP)
+
+    def cal_CCM_Efficiency(self, Io_Total, Fsw_Per_Phase ):
+        Po_clac = self.Vo_nom * Io_Total
+        P_Loss_Lnd_DC = self.of_Phase*((Io_Total/self.of_Phase)**2)*self.Lnd_ESR
+        P_Loss_Lnd_core = P_Loss_Lnd_DC*self.P_loss_Lnd_core_percent
+        P_Loss_Lnd_Total = P_Loss_Lnd_DC + P_Loss_Lnd_core
+        Duty_cycle = self.Vo_nom/self.VIN
+        P_dc_loss_TOP_MOS = self.of_Phase * ((Io_Total / self.of_Phase)**2) * self.Rds_on_High * Duty_cycle
+        P_dc_loss_SYNC_MOS = self.of_Phase * ((Io_Total / self.of_Phase)**2) * self.Rds_on_Low * (1 - Duty_cycle)
+        P_dc_loss_Total = P_dc_loss_TOP_MOS + P_dc_loss_SYNC_MOS
+        P_ac_loss = (self.VIN * Io_Total)/2 *Fsw_Per_Phase*(self.T_lx_falling + self.T_lx_rising)
+        P_loss_dead_band =(self.T_dead_H_L + self.T_dead_L_H) * self.VF_DIODE * Io_Total * Fsw_Per_Phase
+        P_loss_HS_gate = self.PVCC * self.Qg_HS * Fsw_Per_Phase
+        P_loss_LS_gate = self.PVCC * self.Qg_LS * Fsw_Per_Phase
+        P_loss_Qg_Total = P_loss_HS_gate + P_loss_LS_gate
+        P_loss_controller = self.VIN * self.Iq_CONTROLLER
+        Sum_P_loss = P_Loss_Lnd_Total + P_dc_loss_Total + P_ac_loss + P_loss_dead_band + P_loss_Qg_Total + P_loss_controller
+        Efficiency = Po_clac / (Po_clac + Sum_P_loss) *100
+
+        if self.Check_Rds_on.Value == 1:
+            TA = float(self.Text_TA.Value)
+            Theta_JA = float(self.Text_Theta_JA.Value)
+            TC1 = float(self.Text_TC1.Value)*1e-6
+
+            Sum_P_loss_Converter = P_dc_loss_Total + P_ac_loss + P_loss_dead_band + P_loss_Qg_Total + P_loss_controller
+            Temp_die = TA + Sum_P_loss_Converter * Theta_JA
+            Temp_Factor = ( 1 + TC1 * (TA - 25) ) * ( 1 + TC1 * (Temp_die - TA) )
+
+            Rds_on_High = self.Rds_on_High * Temp_Factor
+            Rds_on_Low = self.Rds_on_Low * Temp_Factor
+            P_dc_loss_TOP_MOS = self.of_Phase * ((Io_Total / self.of_Phase)**2) * Rds_on_High * Duty_cycle
+            P_dc_loss_SYNC_MOS = self.of_Phase * ((Io_Total / self.of_Phase)**2) * Rds_on_Low * (1 - Duty_cycle)
+            P_dc_loss_Total_Temp = P_dc_loss_TOP_MOS + P_dc_loss_SYNC_MOS
+
+            #print "DC loss: " + str(P_dc_loss_Total) + " " + str(P_dc_loss_Total_Temp)
+
+            Sum_P_loss = P_Loss_Lnd_Total + P_dc_loss_Total_Temp + P_ac_loss + P_loss_dead_band + P_loss_Qg_Total + P_loss_controller
+            Efficiency_temp_correlation = Po_clac / (Po_clac + Sum_P_loss) *100
+            self.Label_Rds_on_High_Side_T.Label = u"Rds_on_High = %.4e \u03A9,  " %Rds_on_High
+            self.Label_Rds_on_Low_Side_T.Label = u"Rds_on_Low = %.4e \u03A9" %Rds_on_Low
+        else:
+            Efficiency_temp_correlation = Efficiency
+            P_dc_loss_Total_Temp = P_dc_loss_Total
+
+        self.Label_Po_calc.Label = "Po_calc = %.2e W" %Po_clac
+        self.Label_P_Loss_Lnd_DC.Label = "P_Loss_Lnd_DC =%.2e W" %P_Loss_Lnd_DC
+        self.Label_P_Loss_Lnd_core.Label = "P_Loss_Lnd_core =%.2e W"  %P_Loss_Lnd_core
+        self.Label_P_Loss_Lnd_Total.Label = "P_Loss_Lnd_Total =%.2e W" %P_Loss_Lnd_Total
+        self.Label_Duty_cycle.Label = "Duty_cycle =%.2e" %Duty_cycle
+        self.Label_P_dc_loss_TOP_MOS.Label = "P_dc_loss_TOP_MOS =%.2e W" %P_dc_loss_TOP_MOS
+        self.Label_P_dc_loss_SYNC_MOS.Label = "P_dc_loss_SYNC_MOS =%.2e W" %P_dc_loss_SYNC_MOS
+        self.Label_P_dc_loss_Total.Label = "P_dc_loss_Total =%.2e W" %P_dc_loss_Total
+        self.Label_P_ac_loss.Label = "P_ac_loss =%.2e W" %P_ac_loss
+        self.Label_P_loss_dead_band.Label = "P_loss_dead_band =%.2e W" %P_loss_dead_band
+        self.Label_P_loss_HS_gate.Label = "P_loss_HS_gate=%.2e W" %P_loss_HS_gate
+        self.Label_P_loss_LS_gate.Label = "P_loss_LS_gate =%.2e W" %P_loss_LS_gate
+        self.Label_P_loss_Qg.Label = "P_loss_Qg =%.2e W" %P_loss_Qg_Total
+        self.Label_P_loss_controller.Label = "P_loss_controller =%.2e W" %P_loss_controller
+        self.Label_Sum_P_loss.Label = "Sum_P_loss =%.2e W" %Sum_P_loss
+        #self.Label_Efficiency.Label = "Efficiency =%f" %Efficiency
+
+        #print "efficiency" + str(Efficiency) + ", " + str(Efficiency_temp_correlation)
+
+        return Efficiency, Efficiency_temp_correlation, P_Loss_Lnd_Total, P_dc_loss_Total, P_dc_loss_Total_Temp, P_ac_loss, P_loss_dead_band, P_loss_Qg_Total, P_loss_controller
+
+    def cal_DCM_Efficiency(self, Io_Total, I_HS_RMS_DCM, I_LS_RMS_DCM, Fsw_DCM, I_L_PEAK_PFM):
+        Po_clac = self.Vo_nom * Io_Total
+        P_Loss_Lnd_DC = self.of_Phase*(((I_HS_RMS_DCM + I_LS_RMS_DCM)/self.of_Phase)**2)*self.Lnd_ESR
+        P_Loss_Lnd_core = P_Loss_Lnd_DC*self.P_loss_Lnd_core_percent
+        P_Loss_Lnd_Total = P_Loss_Lnd_DC + P_Loss_Lnd_core
+        Duty_cycle = self.Vo_nom/self.VIN
+        P_dc_loss_TOP_MOS = self.of_Phase * ((I_HS_RMS_DCM / self.of_Phase)**2) * self.Rds_on_High
+        P_dc_loss_SYNC_MOS = self.of_Phase * ((I_LS_RMS_DCM / self.of_Phase)**2) * self.Rds_on_Low
+        P_dc_loss_Total = P_dc_loss_TOP_MOS + P_dc_loss_SYNC_MOS
+        P_ac_loss = (self.VIN * I_L_PEAK_PFM) / 2 * Fsw_DCM *( self.T_lx_falling )
+        P_loss_dead_band =(self.T_dead_H_L) * self.VF_DIODE * I_L_PEAK_PFM * Fsw_DCM
+        P_loss_HS_gate = self.PVCC * self.Qg_HS * Fsw_DCM
+        P_loss_LS_gate = self.PVCC * self.Qg_LS * Fsw_DCM
+        P_loss_Qg_Total = P_loss_HS_gate + P_loss_LS_gate
+        P_loss_controller = self.VIN * self.Iq_CONTROLLER
+        Sum_P_loss = P_Loss_Lnd_Total + P_dc_loss_Total + P_ac_loss + P_loss_dead_band + P_loss_Qg_Total + P_loss_controller
+        Efficiency = Po_clac / (Po_clac + Sum_P_loss) *100
+
+        if self.Check_Rds_on.Value == 1:
+            TA = float(self.Text_TA.Value)
+            Theta_JA = float(self.Text_Theta_JA.Value)
+            TC1 = float(self.Text_TC1.Value)*1e-6
+
+            Sum_P_loss_Converter = P_dc_loss_Total + P_ac_loss + P_loss_dead_band + P_loss_Qg_Total + P_loss_controller
+            Temp_die = TA + Sum_P_loss_Converter * Theta_JA
+            Temp_Factor = ( 1 + TC1 * (TA - 25) ) * ( 1 + TC1 * (Temp_die - TA) )
+
+            Rds_on_High = self.Rds_on_High * Temp_Factor
+            Rds_on_Low = self.Rds_on_Low * Temp_Factor
+            P_dc_loss_TOP_MOS = self.of_Phase * ((I_HS_RMS_DCM / self.of_Phase)**2) * Rds_on_High
+            P_dc_loss_SYNC_MOS = self.of_Phase * ((I_LS_RMS_DCM / self.of_Phase)**2) * Rds_on_Low
+            P_dc_loss_Total_Temp = P_dc_loss_TOP_MOS + P_dc_loss_SYNC_MOS
+
+            Sum_P_loss = P_Loss_Lnd_Total + P_dc_loss_Total_Temp + P_ac_loss + P_loss_dead_band + P_loss_Qg_Total + P_loss_controller
+            Efficiency_temp_correlation = Po_clac / (Po_clac + Sum_P_loss) *100
+            self.Label_Rds_on_High_Side_T.Label = u"Rds_on_High = %.4e \u03A9,  " %Rds_on_High
+            self.Label_Rds_on_Low_Side_T.Label = u"Rds_on_Low = %.4e \u03A9" %Rds_on_Low
+        else:
+            Efficiency_temp_correlation = Efficiency
+            P_dc_loss_Total_Temp = P_dc_loss_Total
+
+        #print "efficiency" + str(Efficiency) + ", " + str(Efficiency_temp_correlation)
+
+        self.Label_Po_calc.Label = "Po_calc = %.2e W" %Po_clac
+        self.Label_P_Loss_Lnd_DC.Label = "P_Loss_Lnd_DC =%.2e W" %P_Loss_Lnd_DC
+        self.Label_P_Loss_Lnd_core.Label = "P_Loss_Lnd_core =%.2e W"  %P_Loss_Lnd_core
+        self.Label_P_Loss_Lnd_Total.Label = "P_Loss_Lnd_Total =%.2e W" %P_Loss_Lnd_Total
+        self.Label_Duty_cycle.Label = "Duty_cycle =%.2e" %Duty_cycle
+        self.Label_P_dc_loss_TOP_MOS.Label = "P_dc_loss_TOP_MOS =%.2e W" %P_dc_loss_TOP_MOS
+        self.Label_P_dc_loss_SYNC_MOS.Label = "P_dc_loss_SYNC_MOS =%.2e W" %P_dc_loss_SYNC_MOS
+        self.Label_P_dc_loss_Total.Label = "P_dc_loss_Total =%.2e W" %P_dc_loss_Total
+        self.Label_P_ac_loss.Label = "P_ac_loss =%.2e W" %P_ac_loss
+        self.Label_P_loss_dead_band.Label = "P_loss_dead_band =%.2e W" %P_loss_dead_band
+        self.Label_P_loss_HS_gate.Label = "P_loss_HS_gate=%.2e W" %P_loss_HS_gate
+        self.Label_P_loss_LS_gate.Label = "P_loss_LS_gate =%.2e W" %P_loss_LS_gate
+        self.Label_P_loss_Qg.Label = "P_loss_Qg =%.2e W" %P_loss_Qg_Total
+        self.Label_P_loss_controller.Label = "P_loss_controller =%.2e W" %P_loss_controller
+        self.Label_Sum_P_loss.Label = "Sum_P_loss =%.2e W" %Sum_P_loss
+        #self.Label_Efficiency.Label = "Efficiency =%f" %Efficiency
+
+        return Efficiency, Efficiency_temp_correlation, P_Loss_Lnd_Total, P_dc_loss_Total, P_dc_loss_Total_Temp, P_ac_loss, P_loss_dead_band, P_loss_Qg_Total, P_loss_controller
+
+    def cal_Fsw_DCM_when_Io_GreaterThanHalf_I_L_PEAK_PFM(self, Io):
+        Duty_cycle = self.Vo_nom/self.VIN
+        if self.I_L_PEAK_PFM > Io:
+            Fsw_DCM = ( self.Vo_nom * ( 1 - Duty_cycle ) / (2 * self.Lo_Efficiency * (self.I_L_PEAK_PFM - Io)) )
+        else:
+            Fsw_DCM = self.Fsw_Per_Phase
+        #print "Fsw_DCM = " + str(Fsw_DCM)
+        return Fsw_DCM
+
+    def cal_Fsw_DCM_when_Io_LessThanHalf_I_L_PEAK_PFM(self, Io):
+        Duty_cycle = self.Vo_nom/self.VIN
+        Fsw_DCM = Io / ( 0.5 * self.Lo_Efficiency * (self.I_L_PEAK_PFM)**2 / ((1-Duty_cycle) * self.Vo_nom))
+        #print "Fsw_DCM = " + str(Fsw_DCM)
+        return Fsw_DCM
+
+    def cal_I_L_PEAK_PFM_when_Fsw_DCM_GreaterThan_Fsw_CCM(self, Io):
+        Duty_cycle = self.Vo_nom/self.VIN
+        I_L_PEAK_PFM = ( Io / (self.Lo_Efficiency / 2 * self.Fsw_Per_Phase / ((1-Duty_cycle) * self.Vo_nom)) )**0.5
+        #print I_L_PEAK_PFM
+        return I_L_PEAK_PFM
+
+    def cal_I_HS_RMS_DCM(self, Fsw_DCM, I_L_PEAK_PFM):
+        I_HS_RMS_DCM = (Fsw_DCM * self.Lo_Efficiency / 3 * I_L_PEAK_PFM**3 /(self.VIN - self.Vo_nom))**0.5
+        #print "I_HS_RMS_DCM = " + str(I_HS_RMS_DCM)
+        return I_HS_RMS_DCM
+
+    def cal_I_LS_RMS_DCM(self, Fsw_DCM, I_L_PEAK_PFM):
+        I_LS_RMS_DCM =  (Fsw_DCM * self.Lo_Efficiency / 3 * I_L_PEAK_PFM**3 /(self.Vo_nom))**0.5
+        #print "I_LS_RMS_DCM = " + str(I_LS_RMS_DCM)
+        return I_LS_RMS_DCM
+
+    def Ev_Efficiency(self, event):
+        self.One_Fetech_Effiiency_Parameter()
+        Duty_cycle = self.Vo_nom/self.VIN
+        I_L_PEAK_CRIT = self.Vo_nom * (1 - Duty_cycle) / (self.Lo_Efficiency * self.Fsw_Per_Phase)
+        #print "I_L_PEAK_CRIT = " + str(I_L_PEAK_CRIT)
+        Efficiency_temp_correlation = 0
+        Efficiency = 0
+
+        if self.I_L_PEAK_PFM < I_L_PEAK_CRIT:
+            Fsw_DCM = self.cal_Fsw_DCM_when_Io_LessThanHalf_I_L_PEAK_PFM(self.Io_Total)
+            if Fsw_DCM > self.Fsw_Per_Phase:
+                New_Fsw_DCM = self.Fsw_Per_Phase
+                New_I_L_PEAK_PFM = self.cal_I_L_PEAK_PFM_when_Fsw_DCM_GreaterThan_Fsw_CCM(self.Io_Total)
+                if New_I_L_PEAK_PFM >= I_L_PEAK_CRIT:
+                    Efficiency, Efficiency_temp_correlation, \
+                    P_Loss_Lnd_Total, P_dc_loss_Total, P_dc_loss_Total_Temp, \
+                    P_ac_loss, P_loss_dead_band, P_loss_Qg_Total, P_loss_controller = self.cal_CCM_Efficiency(Io_Total, self.Fsw_Per_Phase)
+                    print "Buck @ CCM"
+                else:
+                    I_HS_RMS_DCM = self.cal_I_HS_RMS_DCM(New_Fsw_DCM, New_I_L_PEAK_PFM)
+                    I_LS_RMS_DCM = self.cal_I_LS_RMS_DCM(New_Fsw_DCM, New_I_L_PEAK_PFM)
+                    Efficiency, Efficiency_temp_correlation, \
+                    P_Loss_Lnd_Total, P_dc_loss_Total, P_dc_loss_Total_Temp, \
+                    P_ac_loss, P_loss_dead_band, P_loss_Qg_Total, P_loss_controller = self.cal_DCM_Efficiency(self.Io_Total, I_HS_RMS_DCM, I_LS_RMS_DCM, New_Fsw_DCM, New_I_L_PEAK_PFM)
+                    print "Buck @ DCM"
+            elif self.I_L_PEAK_PFM <= I_L_PEAK_CRIT:
+                I_HS_RMS_DCM = self.cal_I_HS_RMS_DCM(Fsw_DCM, self.I_L_PEAK_PFM)
+                I_LS_RMS_DCM = self.cal_I_LS_RMS_DCM(Fsw_DCM, self.I_L_PEAK_PFM)
+                Efficiency, Efficiency_temp_correlation, \
+                P_Loss_Lnd_Total, P_dc_loss_Total, P_dc_loss_Total_Temp, \
+                P_ac_loss, P_loss_dead_band, P_loss_Qg_Total, P_loss_controller = self.cal_DCM_Efficiency(self.Io_Total, I_HS_RMS_DCM, I_LS_RMS_DCM, Fsw_DCM, self.I_L_PEAK_PFM)
+
+        elif self.I_L_PEAK_PFM >= I_L_PEAK_CRIT:
+            if self.Io_Total >= 0.5 * self.I_L_PEAK_PFM:
+                Fsw_DCM = self.cal_Fsw_DCM_when_Io_GreaterThanHalf_I_L_PEAK_PFM(self.Io_Total)
+                if Fsw_DCM < self.Fsw_Per_Phase:
+                    New_Fsw_CCM = Fsw_DCM
+                    print "New_Fs_CCM = " + str(New_Fsw_CCM)
+                else:
+                    New_Fsw_CCM  = self.Fsw_Per_Phase
+
+                Efficiency, Efficiency_temp_correlation, \
+                P_Loss_Lnd_Total, P_dc_loss_Total, P_dc_loss_Total_Temp, \
+                P_ac_loss, P_loss_dead_band, P_loss_Qg_Total, P_loss_controller = self.cal_CCM_Efficiency(self.Io_Total, New_Fsw_CCM)
+                print "Buck @ CCM"
+
+            elif self.Io_Total <= 0.5 * self.I_L_PEAK_PFM:
+                Fsw_DCM = self.cal_Fsw_DCM_when_Io_LessThanHalf_I_L_PEAK_PFM(self.Io_Total)
+                I_HS_RMS_DCM = self.cal_I_HS_RMS_DCM(Fsw_DCM, self.I_L_PEAK_PFM)
+                I_LS_RMS_DCM = self.cal_I_LS_RMS_DCM(Fsw_DCM, self.I_L_PEAK_PFM)
+                Efficiency, Efficiency_temp_correlation, \
+                P_Loss_Lnd_Total, P_dc_loss_Total, P_dc_loss_Total_Temp, \
+                P_ac_loss, P_loss_dead_band, P_loss_Qg_Total, P_loss_controller = self.cal_DCM_Efficiency(self.Io_Total, I_HS_RMS_DCM, I_LS_RMS_DCM, Fsw_DCM, self.I_L_PEAK_PFM)
+                print "Buck @ DCM"
+
+        if self.Check_Rds_on.Value == 1:
+            self.Label_Efficiency.Label = u"Efficiency(temp correlation) = %.1f" %Efficiency_temp_correlation
+        else:
+            self.Label_Efficiency.Label = u"Efficiency = %.1f" %Efficiency
+
+    def Ev_Sweep_Effi(self, event):
+        self.Iinitial_effi_Figure()
+        sweep_P_Loss_Lnd = []
+        sweep_P_dc_loss_Total = []
+        sweep_P_dc_loss_Total_TempFixed = []
+        sweep_P_ac_loss = []
+        sweep_P_loss_dead_band = []
+        sweep_P_loss_Qg_Total = []
+        sweep_P_loss_controller = []
+        sweep_efficiency = []
+        sweep_efficiency_TempFixed = []
+        self.One_Fetech_Effiiency_Parameter()
+
+
+        if self.Check_Enable_Plot_Log.Value <> 1:
+            try:
+                Io_Start = float(self.Text_Io_Start.Value)
+                Io_Stop = float(self.Text_Io_Stop.Value)
+                Io_Step = float(self.Text_Io_Step.Value)
+                Io_arange = np.linspace(Io_Start, Io_Stop, Io_Step)
+            except:
+                wx.MessageBox('Please enter Sweep parameters correctly!', 'Error',wx.ICON_EXCLAMATION | wx.STAY_ON_TOP)
+
+        else:
+            try:
+                Io_Start = np.log10(float(self.Text_Io_Start.Value))
+                Io_Stop = np.log10(float(self.Text_Io_Stop.Value))
+                Io_Step = float(self.Text_Io_Step.Value)
+                Io_arange = np.logspace(Io_Start, Io_Stop, Io_Step)
+                #pdb.set_trace()
+            except:
+                wx.MessageBox('Please enter Sweep parameters correctly!', 'Error',wx.ICON_EXCLAMATION | wx.STAY_ON_TOP)
+
+
+
+        Duty_cycle = self.Vo_nom/self.VIN
+        I_L_PEAK_CRIT = self.Vo_nom * (1 - Duty_cycle) / (self.Lo_Efficiency * self.Fsw_Per_Phase)
+        #print "I_L_PEAK_CRIT = " + str(I_L_PEAK_CRIT)
+        Efficiency_temp_correlation = 0
+        Efficiency = 0
+
+        for Io_Total in Io_arange:
+
+            if self.I_L_PEAK_PFM < I_L_PEAK_CRIT:
+                Fsw_DCM = self.cal_Fsw_DCM_when_Io_LessThanHalf_I_L_PEAK_PFM(Io_Total)
+                if Fsw_DCM > self.Fsw_Per_Phase:
+                    New_Fsw_DCM = self.Fsw_Per_Phase
+                    New_I_L_PEAK_PFM = self.cal_I_L_PEAK_PFM_when_Fsw_DCM_GreaterThan_Fsw_CCM(Io_Total)
+                    if New_I_L_PEAK_PFM >= I_L_PEAK_CRIT:
+                        Efficiency, Efficiency_temp_correlation, \
+                        P_Loss_Lnd_Total, P_dc_loss_Total, P_dc_loss_Total_Temp, \
+                        P_ac_loss, P_loss_dead_band, P_loss_Qg_Total, P_loss_controller = self.cal_CCM_Efficiency(Io_Total, self.Fsw_Per_Phase)
+                        #print "Buck @ CCM, Fsw = " + str(self.Fsw_Per_Phase) + " Io = " + str(Io_Total)
+                    else:
+                        I_HS_RMS_DCM = self.cal_I_HS_RMS_DCM(New_Fsw_DCM, New_I_L_PEAK_PFM)
+                        I_LS_RMS_DCM = self.cal_I_LS_RMS_DCM(New_Fsw_DCM, New_I_L_PEAK_PFM)
+                        Efficiency, Efficiency_temp_correlation, \
+                        P_Loss_Lnd_Total, P_dc_loss_Total, P_dc_loss_Total_Temp, \
+                        P_ac_loss, P_loss_dead_band, P_loss_Qg_Total, P_loss_controller = self.cal_DCM_Efficiency(Io_Total, I_HS_RMS_DCM, I_LS_RMS_DCM, New_Fsw_DCM, New_I_L_PEAK_PFM)
+                        #print "Buck @ DCM, Fsw = " + str(New_Fsw_DCM) + " Io = " + str(Io_Total)
+                elif self.I_L_PEAK_PFM <= I_L_PEAK_CRIT:
+                    I_HS_RMS_DCM = self.cal_I_HS_RMS_DCM(Fsw_DCM, self.I_L_PEAK_PFM)
+                    I_LS_RMS_DCM = self.cal_I_LS_RMS_DCM(Fsw_DCM, self.I_L_PEAK_PFM)
+                    Efficiency, Efficiency_temp_correlation, \
+                    P_Loss_Lnd_Total, P_dc_loss_Total, P_dc_loss_Total_Temp, \
+                    P_ac_loss, P_loss_dead_band, P_loss_Qg_Total, P_loss_controller = self.cal_DCM_Efficiency(Io_Total, I_HS_RMS_DCM, I_LS_RMS_DCM, Fsw_DCM, self.I_L_PEAK_PFM)
+                    #print "Buck @ DCM, Fsw = " + str(self.I_L_PEAK_PFM) + " Io = " + str(Io_Total)
+            elif self.I_L_PEAK_PFM >= I_L_PEAK_CRIT:
+                if Io_Total >= 0.5 * self.I_L_PEAK_PFM:
+                    Fsw_DCM = self.cal_Fsw_DCM_when_Io_GreaterThanHalf_I_L_PEAK_PFM(Io_Total)
+                    if Fsw_DCM < self.Fsw_Per_Phase:
+                        New_Fsw_CCM = Fsw_DCM
+                        #print "New_Fs_CCM = " + str(New_Fsw_CCM)
+                    else:
+                        New_Fsw_CCM  = self.Fsw_Per_Phase
+
+                    Efficiency, Efficiency_temp_correlation, \
+                    P_Loss_Lnd_Total, P_dc_loss_Total, P_dc_loss_Total_Temp, \
+                    P_ac_loss, P_loss_dead_band, P_loss_Qg_Total, P_loss_controller = self.cal_CCM_Efficiency(Io_Total, New_Fsw_CCM)
+                    #print "Buck @ CCM, Fsw = "  + str(New_Fsw_CCM) + " Io = " + str(Io_Total)
+
+                elif Io_Total <= 0.5 * self.I_L_PEAK_PFM:
+                    Fsw_DCM = self.cal_Fsw_DCM_when_Io_LessThanHalf_I_L_PEAK_PFM(Io_Total)
+                    I_HS_RMS_DCM = self.cal_I_HS_RMS_DCM(Fsw_DCM, self.I_L_PEAK_PFM)
+                    I_LS_RMS_DCM = self.cal_I_LS_RMS_DCM(Fsw_DCM, self.I_L_PEAK_PFM)
+                    Efficiency, Efficiency_temp_correlation, \
+                    P_Loss_Lnd_Total, P_dc_loss_Total, P_dc_loss_Total_Temp, \
+                    P_ac_loss, P_loss_dead_band, P_loss_Qg_Total, P_loss_controller = self.cal_DCM_Efficiency(Io_Total, I_HS_RMS_DCM, I_LS_RMS_DCM, Fsw_DCM, self.I_L_PEAK_PFM)
+                    #print "Buck @ DCM, Fsw = " + str(Fsw_DCM) + " Io = " + str(Io_Total)
+
+
+            sweep_P_Loss_Lnd.append(P_Loss_Lnd_Total)
+            sweep_P_dc_loss_Total.append(P_dc_loss_Total)
+            sweep_P_dc_loss_Total_TempFixed.append(P_dc_loss_Total_Temp)
+            sweep_P_ac_loss.append(P_ac_loss)
+            sweep_P_loss_dead_band.append(P_loss_dead_band)
+            sweep_P_loss_Qg_Total.append(P_loss_Qg_Total)
+            sweep_P_loss_controller.append(P_loss_controller)
+
+            sweep_efficiency.append(Efficiency)
+            sweep_efficiency_TempFixed.append(Efficiency_temp_correlation)
+
+
+        xmin_Io = float(min(Io_arange))
+        xmax_Io = float(max(Io_arange))
+        ymin_Effi = float(min(sweep_efficiency))
+        ymax_Effi = float(max(sweep_efficiency))
+        ymax_Effi_at_Io = sweep_efficiency.index(max(sweep_efficiency))
+        ymin_Effi_at_Io = sweep_efficiency.index(min(sweep_efficiency))
+        #print "max effi @" + str(ymax_Effi_at_Io)
+        #step1 = (ymax_Effi - ymin_Effi)/(abs(ymax_Effi_at_Io-ymin_Effi_at_Io) + 2)
+
+        if self.Check_Rds_on.Value == 1:
+            ymax_Effi_temp = float(max(sweep_efficiency_TempFixed))
+            ymax_Effi_temp_at_Io = sweep_efficiency_TempFixed.index(max(sweep_efficiency_TempFixed))
+            ymin_Effi_temp_at_Io = sweep_efficiency_TempFixed.index(min(sweep_efficiency_TempFixed))
+            #step2 = (ymax_Effi_temp - ymin_Effi)/(abs(ymax_Effi_temp_at_Io-ymin_Effi_temp_at_Io) + 2)
+
+
+        pylab.setp(self.axes1.get_xticklabels())
+        pylab.setp(self.axes2.get_xticklabels())
+
+        if self.Check_Enable_Plot_Log.Value == 1:
+            self.axes1.set_xscale('log')
+            self.axes2.set_xscale('log')
+
+        if self.Check_Rds_on.Value == 1:
+            self.axes1.plot(Io_arange, sweep_efficiency_TempFixed, 'b.', label='With Temp. correlation')
+        else:
+            self.axes1.plot(Io_arange, sweep_efficiency, 'b.', label='No Temp. correlation')
+
+        legend1 = self.axes1.legend(loc='lower center', shadow=False, fontsize=8)
+
+        if self.Check_Enable_Plot_Log.Value == 1:
+            bar_width = (Io_Stop -Io_Start ) / Io_Step
+        else:
+            bar_width = ( Io_Stop -Io_Start ) / Io_Step
+
+        #pdb.set_trace()
+        y_offset2 = np.array([0.0] * len(Io_arange))
+
+        if self.Check_Rds_on.Value == 1:
+            self.axes2.stackplot(Io_arange, sweep_P_Loss_Lnd, sweep_P_dc_loss_Total_TempFixed, sweep_P_ac_loss, sweep_P_loss_dead_band, sweep_P_loss_Qg_Total, sweep_P_loss_controller )
+        else:
+            self.axes2.stackplot(Io_arange, sweep_P_Loss_Lnd, sweep_P_dc_loss_Total, sweep_P_ac_loss, sweep_P_loss_dead_band, sweep_P_loss_Qg_Total, sweep_P_loss_controller )
+
+        #Label_list = ['Inductor Loss', 'DC Loss', 'AC Loss', 'Dead Band Loss', 'Qg Loss', 'Controller Loss']
+        Label_list = ['Controller Loss', 'Qg Loss', 'Dead Band Loss', 'AC Loss', 'DC Loss', 'Inductor Loss']
+        p6 = matplotlib.patches.Rectangle((0, 0), 1, 1, fc="blue")
+        p5 = matplotlib.patches.Rectangle((0, 0), 1, 1, fc="green")
+        p4 = matplotlib.patches.Rectangle((0, 0), 1, 1, fc="red")
+        p3 = matplotlib.patches.Rectangle((0, 0), 1, 1, fc="cyan")
+        p2 = matplotlib.patches.Rectangle((0, 0), 1, 1, fc="purple")
+        p1 = matplotlib.patches.Rectangle((0, 0), 1, 1, fc="yellow")
+        Lebel_set = [p1, p2, p3, p4, p5, p6]
+        self.axes2.legend( Lebel_set, Label_list, loc='upper left', shadow=False, fontsize=8)
+        #self.axes2.legend( Lebel_set, Label_list)
+
+        self.canvas.draw()
+
+    def Ev_NotebookPageChanging( self, event ):
+        #old = event.GetOldSelection()
+        if event.GetSelection() == 0:
+            self.Iinitial_effi_Figure()
+            #print "select Efficiency page"
+        elif event.GetSelection() == 1:
+            self.Clear_Figure()
+            #print "select Transfer page"
+        elif event.GetSelection() == 2:
+            self.Clear_Figure()
+            #print "select Controller page"
+
+
+if __name__ == '__main__':
+    app = wx.App()
+    CM = Current_Mode_UI(None)
+    CM.Show()
+    app.MainLoop()
